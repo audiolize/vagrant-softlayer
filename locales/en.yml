@@ -1,0 +1,146 @@
+en:
+  vagrant_softlayer:
+    config:
+      api_key_required: |-
+        The SoftLayer API key is required. Please specify it
+        using the SL_API_KEY environment variable or in the provider
+        section of the Vagrantfile:
+
+        config.vm.provider :softlayer do |sl|
+          sl.api_key = "my_API_key"
+        end
+      domain_required: |-
+        The domain of the SoftLayer instance is required.
+        Please specify it in the provider section of the Vagrantfile:
+
+        config.vm.provider :softlayer do |sl|
+          sl.domain = "example.com"
+        end
+      hostname_required: |-
+        The hostname of the SoftLayer instance is required.
+        Please specify it either with `config.vm.hostname` or
+        in the provider section of the Vagrantfile:
+
+        config.vm.hostname = "vagrant"
+
+        config.vm.provider :softlayer do |sl|
+          sl.hostname = "vagrant"
+        end
+      ssh_key_required: |-
+        At least an SSH key for the instance is required.
+        Please specify it, either using name or id, in the
+        provider section of the Vagrantfile:
+
+        config.vm.provider :softlayer do |sl|
+          sl.ssh_key = 1
+        end
+      username_required: |-
+        The SoftLayer username is required. Please specify it
+        using the SL_USERNAME environment variable or in the provider
+        section of the Vagrantfile:
+
+        config.vm.provider :softlayer do |sl|
+          sl.username = "my_username"
+        end
+    errors:
+      api_error: |-
+        Vagrant returned an exception while calling the SoftLayer API.
+
+        Exception class: %{class}
+        Exception message: %{message}
+      certificate_error: |-
+        The secure connection to the SoftLayer API has failed. This is 
+        generally caused by the OpenSSL configuration associated with
+        the Ruby install being unaware of the system specific CA certs.
+        
+        Please ensure that the SSL_CERT_FILE environment variable is set
+        with a path to a certificate authority.
+        
+        Linux example:
+
+        export SSL_CERT_FILE=/opt/vagrant/embedded/cacert.pem
+
+        Mac OS X example:
+
+        export SSL_CERT_FILE=/Applications/Vagrant/embedded/cacert.pem
+
+        Windows example:
+
+        set SSL_CERT_FILE=C:\HashiCorp\Vagrant\embedded\cacert.pem
+      dns_zone_not_found: |-
+        The DNS zone you're trying to manage (%{zone}) has not been
+        found in the zone list.
+      ssh_key_not_found: |-
+        The SSH key you're trying to set (%{key}) does not exists in the
+        SoftLayer account's keychain.
+    states:
+      short_not_created: |-
+        not created
+      long_not_created: |-
+        The SoftLayer instance is not created. Run `vagrant up` to create it.
+      short_halted: |-
+        stopped
+      long_halted: |-
+        The SoftLayer instance is stopped. Run `vagrant up` to start it.
+      short_paused: |-
+        paused
+      long_paused: |-
+        The SoftLayer instance is paused. You need to resume it using another
+        SoftLayer client tool (e.g. `sl` command line utility).
+      short_running: |-
+        running
+      long_running: |-
+        The SoftLayer instance is running. To stop this machine, you can run
+        `vagrant halt`. To destroy the machine, you can run `vagrant destroy`.
+      short_unknown: |-
+        unknown
+      long_unknown: |-
+        The SoftLayer instance is in an unknown state. You need to check it
+        out using SoftLayer administrative interface.
+    sync_folders:
+      rsync_folder: |-
+        Rsyncing folder: %{hostpath} => %{guestpath}
+      rsync_not_found: |-
+        Warning! Folder sync disabled because the rsync binary is missing in the %{side}.
+        Make sure rsync is installed and the binary can be found in the PATH.
+    vm:
+      already_running: |-
+        The SoftLayer instance is already running.
+      already_stopped: |-
+        The SoftLayer instance is already stopped.
+      creating: |-
+        Creating a new SoftLayer instance...
+      creating_dns_record: |-
+        Creating DNS record for the instance...
+      deleting_dns_record: |-
+        Deleting DNS record for the instance...
+      destroying: |-
+        Destroying the SoftLayer instance...
+      not_destroying: |-
+        The SoftLayer instance will not be destroyed, since the confirmation
+        was declined.
+      not_created: |-
+        The SoftLayer instance does not exists.
+      not_rebuilding: |-
+        The SoftLayer instance will not be rebuilded, since the confirmation
+        was declined.
+      not_running: |-
+        The SoftLayer instance is not running. Please run `vagrant up` first.
+      provisioned: |-
+        SoftLayer instance successfully provisioned!
+      rebuilding: |-
+        Rebuilding the SoftLayer instance...
+      rebuild_confirmation: |-
+        Are you sure you want to rebuild the current VM? [y/N] 
+      rebuilt: |-
+        SoftLayer instance successfully rebuilt!
+      starting: |-
+        Starting the SoftLayer instance...
+      stopping: |-
+        Stopping the SoftLayer instance gracefully...
+      stopping_force: |-
+        Stopping the SoftLayer instance forcibly...
+      wait_for_provision: |-
+        Waiting for instance provisioning. This may take a few minutes...
+      wait_for_rebuild: |-
+        Waiting for instance rebuilding. This may take a few minutes...
