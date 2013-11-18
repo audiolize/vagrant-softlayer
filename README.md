@@ -1,5 +1,7 @@
 # Vagrant SoftLayer Provider
 
+[![Code Climate](https://codeclimate.com/github/audiolize/vagrant-softlayer.png)](https://codeclimate.com/github/audiolize/vagrant-softlayer)
+
 This is a [Vagrant](http://www.vagrantup.com) 1.3+ plugin that adds a [SoftLayer](http://www.softlayer.com)
 provider to Vagrant, allowing Vagrant to control and provision SoftLayer CCI instances.
 
