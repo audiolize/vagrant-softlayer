@@ -16,11 +16,30 @@ module VagrantPlugins
         def call(env)
           @env = env
 
-          @env[:dns_zone] = setup_dns
+          update_dns
 
           @app.call(@env)
+        end
 
-          update_dns
+        def add_record
+          template = {
+            "data"     => ip_address(@env),
+            "domainId" => @dns_zone["id"],
+            "host"     => hostname(@env),
+            "ttl"      => 86400,
+            "type"     => "a"
+          }
+          @env[:ui].info I18n.t("vagrant_softlayer.vm.creating_dns_record")
+          @logger.debug("Creating DNS A record for #{template['host']}.#{@dns_zone[:name]} (IP address #{template['data']}).")
+          resource = sl_warden { @resource.createObject(template) }
+          self.dns_id = resource["id"]
+        end
+
+        def delete_record
+          @env[:ui].info I18n.t("vagrant_softlayer.vm.deleting_dns_record")
+          @logger.debug("Deleting stored DNS A record (ID #{self.dns_id}).")
+          warn_msg = lambda { @env[:ui].warn I18n.t("vagrant_softlayer.errors.dns_record_not_found") }
+          sl_warden(warn_msg) { @resource.object_with_id(self.dns_id).deleteObject }
         end
 
         def dns_id
@@ -45,49 +64,28 @@ module VagrantPlugins
           end
         end
 
-        def setup_dns
-          unless @env[:machine].provider_config.manage_dns
-            @logger.debug("Not managing DNS. Going ahead.")
-            return
-          end
-
-          dns_zone = ::SoftLayer::Service.new("SoftLayer_Dns_Domain", @env[:sl_credentials])
-
-          domain = @env[:machine].provider_config.domain
-          @logger.debug("Looking for #{domain} zone into the SoftLayer zone list.")
-          dns_zone_obj = sl_warden { dns_zone.getByDomainName(domain).first }
-          raise Errors::SLDNSZoneNotFound, :zone => domain unless dns_zone_obj
-          @logger.debug("Found DNS zone: #{dns_zone_obj.inspect}")
-          return dns_zone_obj
-        end
-
         def update_dns
           unless @env[:machine].provider_config.manage_dns
             @logger.debug("Not managing DNS. Going ahead.")
             return
           end
 
-          dns_resource = ::SoftLayer::Service.new("SoftLayer_Dns_Domain_ResourceRecord", @env[:sl_credentials])
+          # Lookup the DNS zone
+          zone   = ::SoftLayer::Service.new("SoftLayer_Dns_Domain", @env[:sl_credentials])
+          domain = @env[:machine].provider_config.domain
 
-          case @env[:action_name]
-          when :machine_action_up
-            hostname          = @env[:machine].provider_config.hostname || @env[:machine].config.vm.hostname
-            @env[:sl_machine] = @env[:sl_connection].object_with_id(@env[:machine].id.to_i)
-            res_template      = {
-              "data"     => ip_address(@env),
-              "domainId" => @env[:dns_zone]["id"],
-              "host"     => hostname,
-              "ttl"      => 86400,
-              "type"     => "a"
-            }
-            @env[:ui].info I18n.t("vagrant_softlayer.vm.creating_dns_record")
-            @logger.debug("Creating DNS A record for #{hostname}.#{@env[:dns_zone][:name]} (IP address #{res_template['data']}).")
-            new_rr = sl_warden { dns_resource.createObject(res_template) }
-            self.dns_id = new_rr["id"]
-          when :machine_action_destroy
-            @env[:ui].info I18n.t("vagrant_softlayer.vm.deleting_dns_record")
-            @logger.debug("Deleting stored DNS A record (ID #{self.dns_id}).")
-            sl_warden { dns_resource.object_with_id(self.dns_id).deleteObject }
+          @logger.debug("Looking for #{domain} zone into the SoftLayer zone list.")
+          @dns_zone = sl_warden { zone.getByDomainName(domain).first }
+          raise Errors::SLDNSZoneNotFound, :zone => domain unless @dns_zone
+          @logger.debug("Found DNS zone: #{@dns_zone.inspect}")
+
+          # Add or remove the resource record
+          @resource = ::SoftLayer::Service.new("SoftLayer_Dns_Domain_ResourceRecord", @env[:sl_credentials])
+          case @env[:machine_action]
+          when :up
+            add_record unless self.dns_id
+          when :destroy
+            delete_record
           end
         end
       end

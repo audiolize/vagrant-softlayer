@@ -157,9 +157,9 @@ module VagrantPlugins
               b1.use SetupSoftLayer
               b1.use Provision
               b1.use SyncFolders
-              b1.use UpdateDNS
               b1.use CreateInstance
               b1.use WaitForProvision
+              b1.use UpdateDNS
               b1.use WaitForCommunicator
             else
               b1.use Call, Is, :halted do |env2, b2|
@@ -168,6 +168,7 @@ module VagrantPlugins
                   b2.use Provision
                   b2.use SyncFolders
                   b2.use StartInstance
+                  b2.use UpdateDNS
                   b2.use WaitForCommunicator
                 else
                   b2.use Message, :warn, "vagrant_softlayer.vm.already_running"

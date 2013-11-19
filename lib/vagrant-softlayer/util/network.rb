@@ -2,7 +2,12 @@ module VagrantPlugins
   module SoftLayer
     module Util
       module Network
-        # Gets instance's IP address.
+        # Gets hostname of the instance starting from the environment.
+        def hostname(env)
+          env[:machine].provider_config.hostname || env[:machine].config.vm.hostname
+        end
+
+        # Gets IP address of the instance starting from the environment.
         #
         # Returns the private IP address if the instance has been
         # defined as private only, the public IP address otherwise.

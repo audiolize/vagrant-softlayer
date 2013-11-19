@@ -67,6 +67,8 @@ en:
         Windows example:
 
         set SSL_CERT_FILE=C:\HashiCorp\Vagrant\embedded\cacert.pem
+      dns_record_not_found: |-
+        The DNS record you're trying to delete has not been found.
       dns_zone_not_found: |-
         The DNS zone you're trying to manage (%{zone}) has not been
         found in the zone list.
