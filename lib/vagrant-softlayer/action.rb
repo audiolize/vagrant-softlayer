@@ -23,6 +23,7 @@ module VagrantPlugins
               b2.use SetupSoftLayer
               b2.use DestroyInstance
               b2.use UpdateDNS
+              b2.use ProvisionerCleanup
             else
               b2.use Message, :warn, "vagrant_softlayer.vm.not_destroying"
             end
