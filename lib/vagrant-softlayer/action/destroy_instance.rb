@@ -10,12 +10,12 @@ module VagrantPlugins
         end
 
         def call(env)
-          @app.call(env)
-
           env[:ui].info I18n.t("vagrant_softlayer.vm.destroying")
           
           sl_warden { env[:sl_machine].deleteObject }
           env[:machine].id = nil
+
+          @app.call(env)
         end
       end
     end
