@@ -12,8 +12,34 @@ module VagrantPlugins
         # Returns the private IP address if the instance has been
         # defined as private only, the public IP address otherwise.
         def ip_address(env)
-          service = env[:machine].provider_config.private_only ? :getPrimaryBackendIpAddress : :getPrimaryIpAddress
-          return sl_warden { env[:sl_machine].send(service) }
+          ip_address_record(env)[:address]
+        end
+
+        # Gets IP address ID of the instance starting from the environment.
+        #
+        # Returns the private IP address ID if the instance has been
+        # defined as private only, the public IP address ID otherwise.
+        def ip_address_id(env)
+          ip_address_record(env)[:id]
+        end
+
+        # Gets IP address record of the instance starting from the environment.
+        #
+        # Returns an hash with the following structure:
+        #
+        # :address
+        # :id
+        #
+        # Returns the private IP address record if the instance has been
+        # defined as private only, the public IP address record otherwise.
+        def ip_address_record(env)
+          data_type = env[:machine].provider_config.private_only ? "primaryBackendNetworkComponent" : "primaryNetworkComponent"
+          mask      = { data_type => { "primaryIpAddressRecord" => ["id", "ipAddress"] } }
+          record    = sl_warden { env[:sl_machine].object_mask(mask).getObject }
+          return {
+            :address => record[data_type]["primaryIpAddressRecord"]["ipAddress"],
+            :id      => record[data_type]["primaryIpAddressRecord"]["id"]
+          }
         end
 
         # Returns SSH keys starting from the configuration parameter.

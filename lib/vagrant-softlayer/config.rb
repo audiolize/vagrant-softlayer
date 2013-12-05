@@ -1,3 +1,5 @@
+require "ostruct"
+
 module VagrantPlugins
   module SoftLayer
     class Config < Vagrant.plugin("2", :config)
@@ -58,6 +60,9 @@ module VagrantPlugins
       # The ID of the public VLAN.
       attr_accessor :vlan_public
 
+      # The load balancers service groups to join.
+      attr_reader :load_balancers
+
       # Automatically update DNS on create and destroy.
       attr_accessor :manage_dns
 
@@ -83,7 +88,41 @@ module VagrantPlugins
         @vlan_private     = UNSET_VALUE
         @vlan_public      = UNSET_VALUE
 
-        @manage_dns = UNSET_VALUE
+        @load_balancers = []
+        @manage_dns     = UNSET_VALUE
+      end
+
+      # Set the load balancer service group to join.
+      #
+      # Available options:
+      #
+      # :method => Routing method. Default to round robin.
+      # :port   => Load balancer virtual port.
+      # :type   => Routing type. Default to TCP.
+      # :vip    => Load balancer virtual IP address.
+      #
+      # An optional block will accept parameters for the
+      # balanced service. Available parameters:
+      #
+      # :destination_port => TCP port on the node.
+      # :health_check     => Service health check. Default to ping.
+      # :weight           => Service weight. Default to 1.
+      #
+      def join_load_balancer(opts = {}, &block)
+        # Defaults
+        opts[:method] ||= "ROUND ROBIN"
+        opts[:type]   ||= "TCP"
+        opts[:service]  = OpenStruct.new(:destination_port => nil, :health_check => "PING", :weight => 1)
+        
+        yield opts[:service] if block_given?
+        
+        # Convert all options that belongs to
+        # an enumeration in uppercase.
+        opts[:method].upcase!
+        opts[:type].upcase!
+        opts[:service].health_check.upcase!
+
+        @load_balancers << opts
       end
 
       def finalize!
@@ -148,7 +187,7 @@ module VagrantPlugins
         @manage_dns = false if @manage_dns == UNSET_VALUE
       end
 
-      # Aliases for ssh_key for beautiful semantic
+      # Aliases for ssh_key for beautiful semantic.
       def ssh_keys=(value)
         @ssh_key = value
       end
@@ -169,6 +208,18 @@ module VagrantPlugins
         #  Fail if both `vm.hostname` and `provider.hostname` are nil.
         if !@hostname && !machine.config.vm.hostname
           errors << I18n.t("vagrant_softlayer.config.hostname_required")
+        end
+
+        # Fail if a load balancer has been specified without vip, port or destination port.
+        unless @load_balancers.empty?
+          @load_balancers.each do |lb|
+            errors << I18n.t("vagrant_softlayer.config.lb_port_vip_required") unless (lb[:vip] && lb[:port] && lb[:service].destination_port)
+          end
+        end
+
+        # Fail if two or more load balancers has been specified with same vip and port.
+        if @load_balancers.map { |lb| { :port => lb[:port], :vip => lb[:vip] } }.uniq!
+          errors << I18n.t("vagrant_softlayer.config.lb_duplicate")
         end
 
         { "SoftLayer" => errors }

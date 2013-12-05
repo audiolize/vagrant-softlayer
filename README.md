@@ -104,6 +104,10 @@ Parameter    | Description                           | Default | Required
 ------------ | ------------------------------------- | ------- | --------
 `manage_dns` | Add/remove A record on create/destroy | false   | no
 
+### Join Local Load Balancers
+
+See [Join load balancers](https://github.com/audiolize/vagrant-softlayer/wiki/Join-load-balancers).
+
 ### Instance Configuration
 
 Parameter          | Description                                 | Default                 | Required

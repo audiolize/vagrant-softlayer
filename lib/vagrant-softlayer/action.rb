@@ -1,4 +1,5 @@
 require "pathname"
+require "vagrant-softlayer/util/load_balancer"
 require "vagrant-softlayer/util/network"
 require "vagrant-softlayer/util/warden"
 
@@ -23,6 +24,7 @@ module VagrantPlugins
               b2.use SetupSoftLayer
               b2.use UpdateDNS
               b2.use DestroyInstance
+              b2.use LoadBalancerCleanup
               b2.use ProvisionerCleanup
             else
               b2.use Message, :warn, "vagrant_softlayer.vm.not_destroying"
@@ -161,6 +163,7 @@ module VagrantPlugins
               b1.use CreateInstance
               b1.use WaitForProvision
               b1.use UpdateDNS
+              b1.use JoinLoadBalancer
               b1.use WaitForCommunicator
             else
               b1.use Call, Is, :halted do |env2, b2|
@@ -170,6 +173,7 @@ module VagrantPlugins
                   b2.use SyncFolders
                   b2.use StartInstance
                   b2.use UpdateDNS
+                  b2.use JoinLoadBalancer
                   b2.use WaitForCommunicator
                 else
                   b2.use Message, :warn, "vagrant_softlayer.vm.already_running"
@@ -183,20 +187,22 @@ module VagrantPlugins
       # The autoload farm
       action_root = Pathname.new(File.expand_path("../action", __FILE__))
 
-      autoload :CreateInstance,   action_root.join("create_instance")
-      autoload :DestroyInstance,  action_root.join("destroy_instance")
-      autoload :Is,               action_root.join("is")
-      autoload :Message,          action_root.join("message")
-      autoload :ReadSSHInfo,      action_root.join("read_ssh_info")
-      autoload :ReadState,        action_root.join("read_state")
-      autoload :RebuildInstance,  action_root.join("rebuild_instance")
-      autoload :SetupSoftLayer,   action_root.join("setup_softlayer")
-      autoload :StartInstance,    action_root.join("start_instance")
-      autoload :StopInstance,     action_root.join("stop_instance")
-      autoload :SyncFolders,      action_root.join("sync_folders")
-      autoload :UpdateDNS,        action_root.join("update_dns")
-      autoload :WaitForProvision, action_root.join("wait_for_provision")
-      autoload :WaitForRebuild,   action_root.join("wait_for_rebuild")
+      autoload :CreateInstance,      action_root.join("create_instance")
+      autoload :DestroyInstance,     action_root.join("destroy_instance")
+      autoload :Is,                  action_root.join("is")
+      autoload :JoinLoadBalancer,    action_root.join("join_load_balancer")
+      autoload :LoadBalancerCleanup, action_root.join("load_balancer_cleanup")
+      autoload :Message,             action_root.join("message")
+      autoload :ReadSSHInfo,         action_root.join("read_ssh_info")
+      autoload :ReadState,           action_root.join("read_state")
+      autoload :RebuildInstance,     action_root.join("rebuild_instance")
+      autoload :SetupSoftLayer,      action_root.join("setup_softlayer")
+      autoload :StartInstance,       action_root.join("start_instance")
+      autoload :StopInstance,        action_root.join("stop_instance")
+      autoload :SyncFolders,         action_root.join("sync_folders")
+      autoload :UpdateDNS,           action_root.join("update_dns")
+      autoload :WaitForProvision,    action_root.join("wait_for_provision")
+      autoload :WaitForRebuild,      action_root.join("wait_for_rebuild")
     end
   end
 end

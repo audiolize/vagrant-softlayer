@@ -32,7 +32,8 @@ describe VagrantPlugins::SoftLayer::Config do
     its("vlan_private")     { should be_nil }
     its("vlan_public")      { should be_nil }
 
-    its("manage_dns") { should be_false }
+    its("load_balancers") { should eq [] }
+    its("manage_dns")     { should be_false }
   end
 
   describe "overriding defaults" do
@@ -66,6 +67,34 @@ describe VagrantPlugins::SoftLayer::Config do
           expect(config.send(attribute)).to eq "foo"
         end
       end
+    end
+  end
+
+  describe "joining load balancer" do
+    it "should set weight to 1 by default" do
+      config.join_load_balancer :port => 443, :vip => "1.1.1.1"
+      config.finalize!
+      expect(config.load_balancers.first[:service].weight).to eq(1)
+    end
+
+    it "should set passed options" do
+      config.join_load_balancer :foo => "bar", :port => 443, :vip => "1.1.1.1"
+      config.finalize!
+      expect(config.load_balancers.first[:foo]).to eq("bar")
+    end
+
+    it "should set service parameters" do
+      config.join_load_balancer :port => 443, :vip => "1.1.1.1" do |srv|
+        srv.destination_port = 443
+        srv.health_check     = "DNS"
+        srv.notes            = "Some notes"
+        srv.weight           = 9
+      end
+      config.finalize!
+      expect(config.load_balancers.first[:service].destination_port).to eq(443)
+      expect(config.load_balancers.first[:service].health_check).to eq("DNS")
+      expect(config.load_balancers.first[:service].notes).to eq("Some notes")
+      expect(config.load_balancers.first[:service].weight).to eq(9)
     end
   end
 
@@ -143,6 +172,7 @@ describe VagrantPlugins::SoftLayer::Config do
 
     it "should validate if hostname is not given but config.vm.hostname is set" do
       config.hostname = nil
+      config.finalize!
       machine.stub_chain(:config, :vm, :hostname).and_return("vagrant")
       expect(config.validate(machine)["SoftLayer"]).to have(:no).item
     end
@@ -151,6 +181,47 @@ describe VagrantPlugins::SoftLayer::Config do
       config.ssh_key = nil
       config.finalize!
       expect(config.validate(machine)["SoftLayer"]).to have(1).item
+    end
+
+    it "should fail if a load balancer is specified without vip" do
+      config.join_load_balancer :port => 443 do |srv|
+        srv.destination_port = 443
+      end
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(1).item
+    end
+
+    it "should fail if a load balancer is specified without port" do
+      config.join_load_balancer :vip => "1.1.1.1" do |srv|
+        srv.destination_port = 443
+      end
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(1).item
+    end
+
+    it "should fail if a load balancer is specified without destination port" do
+      config.join_load_balancer :port => 443, :vip => "1.1.1.1"
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(1).item
+    end
+
+    it "should fail if two load balancers han been defined with same vip and port" do
+      config.join_load_balancer :port => 443, :vip => "1.1.1.1" do |srv|
+        srv.destination_port = 443
+      end
+      config.join_load_balancer :port => 443, :vip => "1.1.1.1" do |srv|
+        srv.destination_port = 8443
+      end
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(1).item
+    end
+
+    it "should validate if a load balancer if specified with vip, port and destination port" do
+      config.join_load_balancer :port => 443, :vip => "1.1.1.1" do |srv|
+        srv.destination_port = 443
+      end
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(:no).item
     end
   end
 end

@@ -17,6 +17,10 @@ module VagrantPlugins
         error_key(:dns_zone_not_found)
       end
 
+      class SLLoadBalancerNotFound < VagrantSoftLayerError
+        error_key(:load_balancer_not_found)
+      end
+
       class SLSshKeyNotFound < VagrantSoftLayerError
         error_key(:ssh_key_not_found)
       end

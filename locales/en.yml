@@ -26,6 +26,20 @@ en:
         config.vm.provider :softlayer do |sl|
           sl.hostname = "vagrant"
         end
+      lb_duplicate: |-
+        A load balancer service group has been specified multiple
+        times. Only one directive for any { :vip, :port } combination
+        is allowed.
+      lb_port_vip_required: |-
+        For joining a load balancer, you need to specify at least
+        virtual IP address, virtual server port and destination
+        port in the provider section of the Vagrantfile:
+
+        config.vm.provider :softlayer do |sl|
+          sl.join_load_balancer :port => 443, :vip => "1.1.1.1" do |service|
+            service.destination_port = 443
+          end
+        end
       ssh_key_required: |-
         At least an SSH key for the instance is required.
         Please specify it, either using name or id, in the
@@ -72,6 +86,10 @@ en:
       dns_zone_not_found: |-
         The DNS zone you're trying to manage (%{zone}) has not been
         found in the zone list.
+      load_balancer_not_found: |-
+        The load balancer you're trying to join has not been found.
+
+        Please check the configuration parameter for virtual IP address.
       ssh_key_not_found: |-
         The SSH key you're trying to set (%{key}) does not exists in the
         SoftLayer account's keychain.
@@ -118,6 +136,10 @@ en:
         Deleting DNS record for the instance...
       destroying: |-
         Destroying the SoftLayer instance...
+      joining_load_balancers: |-
+        Joining load balancer(s)...
+      load_balancer_cleanup: |-
+        Running cleanup tasks for load balancers...
       not_destroying: |-
         The SoftLayer instance will not be destroyed, since the confirmation
         was declined.
