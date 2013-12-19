@@ -5,10 +5,10 @@
 [![Code Climate](https://codeclimate.com/github/audiolize/vagrant-softlayer.png)](https://codeclimate.com/github/audiolize/vagrant-softlayer)
 </span>
 
-This is a [Vagrant](http://www.vagrantup.com) 1.3+ plugin that adds a [SoftLayer](http://www.softlayer.com)
+This is a [Vagrant](http://www.vagrantup.com) plugin that adds a [SoftLayer](http://www.softlayer.com)
 provider to Vagrant, allowing Vagrant to control and provision SoftLayer CCI instances.
 
-**NOTE:** This plugin requires Vagrant 1.3+
+**NOTE:** This plugin work both with Vagrant 1.3 and 1.4 (the latter is strongly advised).
 
 ## Features
 
@@ -20,43 +20,9 @@ provider to Vagrant, allowing Vagrant to control and provision SoftLayer CCI ins
 
 ## Installation
 
-### Set the `SSL_CERT_FILE` environment variable
-
-If you intend to use the public API endpoint, which is the default, you have to
-set the `SSL_CERT_FILE` environment variable.
-
-The *net/http* library of the Vagrant's embedded ruby does **not**
-check the validity of an SSL certificate during a TLS handshake. This breaks all
-the calls to the SoftLayer API, making the plugin unusable.
-
-For fixing this issue, you have to make ruby aware of a certificate authority
-bundle by setting `SSL_CERT_FILE`:
-
-**Linux**
-
-* To set this in your current command prompt session, type:
-
-  `export SSL_CERT_FILE=/opt/vagrant/embedded/cacert.pem`
-
-* To make this a permanent setting, add this in `.bashrc` or `.profile`.
-
-**Mac OS X**
-
-* To set this in your current command prompt session, type:
-
-  `export SSL_CERT_FILE=/Applications/Vagrant/embedded/cacert.pem`
-
-* To make this a permanent setting, add this in `/etc/launchd.conf`.
-
-**Windows**
-
-* To set this in your current command prompt session, type:
-
-  `set SSL_CERT_FILE=C:\HashiCorp\Vagrant\embedded\cacert.pem`
-
-* To make this a permanent setting, add this in your [control panel](http://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/environment_variables.mspx?mfr=true).
-
-### Plugin installation
+> **NOTE**
+>
+> If you're using Vagrant 1.3, you need to [Set the SSL_CERT_FILE environment variable](https://github.com/audiolize/vagrant-softlayer/wiki/The-SSL_CERT_FILE-environment-variable) first.
 
 Installation is performed in the prescribed manner for Vagrant 1.1+ plugins.
 After installing, `vagrant up` and specify the `softlayer` provider. An example is
