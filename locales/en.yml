@@ -105,8 +105,8 @@ en:
       short_paused: |-
         paused
       long_paused: |-
-        The SoftLayer instance is paused. You need to resume it using another
-        SoftLayer client tool (e.g. `sl` command line utility).
+        The SoftLayer instance is paused. To resume it, you can run
+        `vagrant resume`.
       short_running: |-
         running
       long_running: |-
@@ -145,6 +145,8 @@ en:
         was declined.
       not_created: |-
         The SoftLayer instance does not exists.
+      not_paused: |-
+        The SoftLayer instance cannot be resumed, since it is not suspended.
       not_rebuilding: |-
         The SoftLayer instance will not be rebuilded, since the confirmation
         was declined.
@@ -158,12 +160,16 @@ en:
         Are you sure you want to rebuild the current VM? [y/N] 
       rebuilt: |-
         SoftLayer instance successfully rebuilt!
+      resuming: |-
+        Resuming the SoftLayer instance...
       starting: |-
         Starting the SoftLayer instance...
       stopping: |-
         Stopping the SoftLayer instance gracefully...
       stopping_force: |-
         Stopping the SoftLayer instance forcibly...
+      suspending: |-
+        Suspending the SoftLayer instance...
       wait_for_provision: |-
         Waiting for instance provisioning. This may take a few minutes...
       wait_for_rebuild: |-

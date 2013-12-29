@@ -12,7 +12,7 @@ provider to Vagrant, allowing Vagrant to control and provision SoftLayer CCI ins
 
 ## Features
 
-* Basic lifecycle (boot, halt, reboot) of SoftLayer CCI instances.
+* Basic lifecycle (boot, halt, reboot, suspend, resume) of SoftLayer CCI instances.
 * OS reload on a CCI (`vagrant rebuild`).
 * SSH into the instances.
 * Provision the instances with any built-in Vagrant provisioner.
