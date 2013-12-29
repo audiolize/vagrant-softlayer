@@ -1,3 +1,9 @@
+## 0.3.0 (unreleased)
+
+NEW FEATURES:
+
+  - Add suspend/resume commands.
+
 ## 0.2.0 (December 5, 2013)
 
 NEW FEATURES:

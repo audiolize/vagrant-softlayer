@@ -120,6 +120,22 @@ module VagrantPlugins
         end
       end
 
+      # This action is called to resume the remote machine.
+      def self.action_resume
+        Vagrant::Action::Builder.new.tap do |b|
+          b.use ConfigValidate
+          b.use Call, Is, :paused do |env, b2|
+            if !env[:result]
+              b2.use Message, :error, "vagrant_softlayer.vm.not_paused"
+              next
+            end
+
+            b2.use SetupSoftLayer
+            b2.use ResumeInstance
+          end
+        end
+      end
+
       # This action is called to SSH into the machine.
       def self.action_ssh
         Vagrant::Action::Builder.new.tap do |b|
@@ -145,6 +161,22 @@ module VagrantPlugins
             end
 
             b2.use SSHRun
+          end
+        end
+      end
+
+      # This action is called to suspend the remote machine.
+      def self.action_suspend
+        Vagrant::Action::Builder.new.tap do |b|
+          b.use ConfigValidate
+          b.use Call, Is, :running do |env, b2|
+            if !env[:result]
+              b2.use Message, :error, "vagrant_softlayer.vm.not_running"
+              next
+            end
+
+            b2.use SetupSoftLayer
+            b2.use SuspendInstance
           end
         end
       end
@@ -196,9 +228,11 @@ module VagrantPlugins
       autoload :ReadSSHInfo,         action_root.join("read_ssh_info")
       autoload :ReadState,           action_root.join("read_state")
       autoload :RebuildInstance,     action_root.join("rebuild_instance")
+      autoload :ResumeInstance,      action_root.join("resume_instance")
       autoload :SetupSoftLayer,      action_root.join("setup_softlayer")
       autoload :StartInstance,       action_root.join("start_instance")
       autoload :StopInstance,        action_root.join("stop_instance")
+      autoload :SuspendInstance,     action_root.join("suspend_instance")
       autoload :SyncFolders,         action_root.join("sync_folders")
       autoload :UpdateDNS,           action_root.join("update_dns")
       autoload :WaitForProvision,    action_root.join("wait_for_provision")
