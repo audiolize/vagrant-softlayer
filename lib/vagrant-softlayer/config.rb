@@ -30,6 +30,9 @@ module VagrantPlugins
       # The billing type of the instance (true for hourly, false for monthly).
       attr_accessor :hourly_billing
 
+      # The global identifier of the compute or flex image to use.
+      attr_accessor :image_id
+
       # The disk type of the instance (true for local, false for SAN).
       attr_accessor :local_disk
 
@@ -79,6 +82,7 @@ module VagrantPlugins
         @disk_capacity    = UNSET_VALUE
         @domain           = UNSET_VALUE
         @hostname         = UNSET_VALUE
+        @image_id         = UNSET_VALUE
         @hourly_billing   = UNSET_VALUE
         @local_disk       = UNSET_VALUE
         @max_memory       = UNSET_VALUE
@@ -157,6 +161,9 @@ module VagrantPlugins
         # Bill hourly by default.
         @hourly_billing = true if @hourly_billing == UNSET_VALUE
 
+        # Disable the use of a specific block device image so we can leave the OS template as default
+        @image_id = nil if @image_id == UNSET_VALUE
+
         # Use local disk by default.
         @local_disk = true if @local_disk == UNSET_VALUE
 
@@ -211,6 +218,9 @@ module VagrantPlugins
 
         errors << I18n.t("vagrant_softlayer.config.domain_required") if !@domain
         errors << I18n.t("vagrant_softlayer.config.ssh_key_required") if !@ssh_key
+
+        errors << I18n.t("vagrant_softlayer.config.imggid_osrefcode_mutually_exclusive") if @image_id && @operatng_system
+        errors << I18n.t("vagrant_softlayer.config.imggid_diskcapacity_mutually_exclusive") if @image_id && @disk_capacity
 
         #  Fail if both `vm.hostname` and `provider.hostname` are nil.
         if !@hostname && !machine.config.vm.hostname

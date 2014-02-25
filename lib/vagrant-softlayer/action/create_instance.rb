@@ -34,7 +34,6 @@ module VagrantPlugins
             "localDiskFlag"                => @env[:machine].provider_config.local_disk,
             "maxMemory"                    => @env[:machine].provider_config.max_memory,
             "networkComponents"            => [ { :maxSpeed => @env[:machine].provider_config.network_speed } ],
-            "operatingSystemReferenceCode" => @env[:machine].provider_config.operating_system,
             "privateNetworkOnlyFlag"       => @env[:machine].provider_config.private_only,
             "sshKeys"                      => ssh_keys(@env),
             "startCpus"                    => @env[:machine].provider_config.start_cpus
@@ -42,6 +41,8 @@ module VagrantPlugins
 
           template["blockDevices"] =  @env[:machine].provider_config.disk_capacity.map{ |key,value| { "device"=> key.to_s, "diskImage" => { "capacity" => value.to_s } } } if @env[:machine].provider_config.disk_capacity
           template["datacenter"] = { :name => @env[:machine].provider_config.datacenter } if @env[:machine].provider_config.datacenter
+          template["globalIdentifier"] = @env[:machine].provider_config.image_id if @env[:machine].provider_config.image_id
+          template["operatingSystemReferenceCode"] = @env[:machine].provider_config.operating_system if ! @env[:machine].provider_config.image_id
           template["postInstallScriptUri"] = @env[:machine].provider_config.post_install if @env[:machine].provider_config.post_install
           template["primaryNetworkComponent"] = { :networkVlan => { :id => @env[:machine].provider_config.vlan_public } } if @env[:machine].provider_config.vlan_public
           template["primaryBackendNetworkComponent"] = { :networkVlan => { :id => @env[:machine].provider_config.vlan_private } } if @env[:machine].provider_config.vlan_private
