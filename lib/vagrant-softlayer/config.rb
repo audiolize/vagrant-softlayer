@@ -18,6 +18,9 @@ module VagrantPlugins
       # Whether to allocate a dedicated instance.
       attr_accessor :dedicated
 
+      # The disk image capacity
+      attr_accessor :disk_capacity
+
       # The domain of the instance.
       attr_accessor :domain
 
@@ -73,6 +76,7 @@ module VagrantPlugins
 
         @datacenter       = UNSET_VALUE
         @dedicated        = UNSET_VALUE
+        @disk_capacity    = UNSET_VALUE
         @domain           = UNSET_VALUE
         @hostname         = UNSET_VALUE
         @hourly_billing   = UNSET_VALUE
@@ -139,6 +143,9 @@ module VagrantPlugins
 
         # Shared instance by default.
         @dedicated = false if @dedicated == UNSET_VALUE
+
+        # 25GB disk capacity image by default.
+        @disk_capacity = nil if @disk_capacity == UNSET_VALUE
 
         # Domain should be specified in Vagrantfile, so we set default to nil.
         @domain = nil if @domain == UNSET_VALUE
