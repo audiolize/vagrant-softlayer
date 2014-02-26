@@ -15,7 +15,9 @@ module VagrantPlugins
           
           @env[:ui].info I18n.t("vagrant_softlayer.vm.creating")
           
-          result = sl_warden { env[:sl_connection].createObject(order_template) }
+          sl_warden { env[:sl_product_order].verifyOrder(env[:sl_virtual_guest].generateOrderTemplate(order_template)) }
+
+          result = sl_warden { env[:sl_virtual_guest].createObject(order_template) }
           @env[:machine].id = result["id"].to_s
 
           @app.call(@env)
