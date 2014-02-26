@@ -20,7 +20,7 @@ opts = GetoptLong.new(
                       [ '--default_vlan_public', GetoptLong::REQUIRED_ARGUMENT ],
                       [ '--sl_api_key', '-k', GetoptLong::REQUIRED_ARGUMENT ],
                       [ '--sl_endpoint_url', '-e', GetoptLong::REQUIRED_ARGUMENT ],
-                      [ '--sl_username','-u', GetoptLong::REQUIRED_ARGUMENT ],
+                      [ '--sl_username','-u', GetoptLong::REQUIRED_ARGUMENT ]
                       )
 
 sl = { 
@@ -37,7 +37,7 @@ sl = {
   :sl_credentials => {
     :api_key => nil, 
     :endpoint_url => SoftLayer::API_PUBLIC_ENDPOINT,
-    :username => nil,
+    :username => nil
   }
 }
 
