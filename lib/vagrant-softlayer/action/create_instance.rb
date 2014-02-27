@@ -43,7 +43,7 @@ module VagrantPlugins
 
           template["blockDevices"] =  @env[:machine].provider_config.disk_capacity.map{ |key,value| { "device"=> key.to_s, "diskImage" => { "capacity" => value.to_s } } } if @env[:machine].provider_config.disk_capacity
           template["datacenter"] = { :name => @env[:machine].provider_config.datacenter } if @env[:machine].provider_config.datacenter
-          template["globalIdentifier"] = @env[:machine].provider_config.image_id if @env[:machine].provider_config.image_id
+          template["blockDeviceTemplateGroup"] = { :globalIdentifier => @env[:machine].provider_config.image_id } if @env[:machine].provider_config.image_id
           template["operatingSystemReferenceCode"] = @env[:machine].provider_config.operating_system if ! @env[:machine].provider_config.image_id
           template["postInstallScriptUri"] = @env[:machine].provider_config.post_install if @env[:machine].provider_config.post_install
           template["primaryNetworkComponent"] = { :networkVlan => { :id => @env[:machine].provider_config.vlan_public } } if @env[:machine].provider_config.vlan_public
