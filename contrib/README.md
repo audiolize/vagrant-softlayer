@@ -1,4 +1,4 @@
-# vagrant-softLayer Contrib
+# vagrant-softlayer Contrib
 
 Miscellaneous contributions which assist people in using vagrant-softlayer will
 make their way into this directory. An up-to-date list of short descriptions

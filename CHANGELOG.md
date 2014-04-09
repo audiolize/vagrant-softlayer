@@ -1,3 +1,11 @@
+## 0.4.0 (April 8, 2014)
+
+NEW FEATURES:
+
+  - Add selection of disk sizes for templates.
+  - Add selection of block devices by id.
+  - Add vagrant-softlayer-boxes contrib tool for creating boxes.
+
 ## 0.3.0 (unreleased)
 
 NEW FEATURES:

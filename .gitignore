@@ -13,3 +13,5 @@ Vagrantfile
 # Miscellaneous local stuff
 example_box/*.box
 scripts/*
+
+*~
