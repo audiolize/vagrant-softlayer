@@ -26,6 +26,36 @@ en:
         config.vm.provider :softlayer do |sl|
           sl.hostname = "vagrant"
         end
+      imggid_diskcapacity_mutually_exclusive: |-
+        The disk capacity can only be specified when using an operating
+        system reference code and not when using a specifc compute or
+        flex image id. Please use one of the following options in the
+        provider section:
+
+        config.vm.provider :softlayer do |sl|
+          sl.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+        end
+
+        config.vm.provider :softlayer do |sl|
+          sl.operating_system = "UBUNTU_LATEST"
+
+          #disk number 1 is reserved for SWAP space, see SoftLayer API
+          #CLI tool command 'sl cci create-options' for more info.
+          sl.disk_capacity = { 0 => 25, 2 => 100, 3 => 2000 }
+        end
+      imggid_osrefcode_mutually_exclusive: |-
+        The image id for a compute or flex image and the operating
+        system reference code cannot be used at the same time.
+        Please use only one of the following options in the provider
+        section:
+
+        config.vm.provider :softlayer do |sl|
+          sl.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+        end
+
+        config.vm.provider :softlayer do |sl|
+          sl.operating_system = "UBUNTU_LATEST"
+        end
       lb_duplicate: |-
         A load balancer service group has been specified multiple
         times. Only one directive for any { :vip, :port } combination

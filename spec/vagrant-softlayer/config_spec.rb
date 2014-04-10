@@ -17,9 +17,11 @@ describe VagrantPlugins::SoftLayer::Config do
 
     its("datacenter")       { should be_nil }
     its("dedicated")        { should be_false }
+    its("disk_capacity")    { should be_nil }
     its("domain")           { should be_nil }
     its("hostname")         { should be_nil }
     its("hourly_billing")   { should be_true }
+    its("image_id")         { should be_nil }
     its("local_disk")       { should be_true }
     its("max_memory")       { should eq 1024 }
     its("network_speed")    { should eq 10 }
@@ -60,12 +62,20 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     context "strings" do
-      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :operating_system, :post_install, :ssh_key, :user_data].each do |attribute|
+      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :image_id, :operating_system, :post_install, :ssh_key, :user_data].each do |attribute|
         it "should not default #{attribute} if overridden" do
           config.send("#{attribute}=".to_sym, "foo")
           config.finalize!
           expect(config.send(attribute)).to eq "foo"
         end
+      end
+    end
+
+    context "int hash" do
+      it "should not default disk_capacity if overriden" do
+        config.send("disk_capacity=".to_sym, { 0 => 100, 2 => 25 } )
+        config.finalize!
+        expect(config.send("disk_capacity")).to eq { 0 => 100, 2 => 25 } 
       end
     end
   end
@@ -123,8 +133,10 @@ describe VagrantPlugins::SoftLayer::Config do
       config.datacenter       = "ams01"
       config.dedicated        = false
       config.domain           = "example.com"
+      config.disk_capacity    = { 0 => 25 }
       config.hostname         = "vagrant"
       config.hourly_billing   = true
+      config.image_id         = nil
       config.local_disk       = true
       config.max_memory       = 1024
       config.network_speed    = 10
@@ -220,6 +232,28 @@ describe VagrantPlugins::SoftLayer::Config do
       config.join_load_balancer :port => 443, :vip => "1.1.1.1" do |srv|
         srv.destination_port = 443
       end
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(:no).item
+    end
+
+    it "should fail if disk_capcity and image_id are both specified" do
+      config.disk_capacity = { 0 => 25 }
+      config.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+      config.operating_system = nil
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(1).item
+    end
+
+    it "should fail if image_id and operating_system are both specified" do
+      config.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+      config.operating_system = "UBUNTU_LATEST"
+      config.finalize!
+      expect(config.validate(machine)["SoftLayer"]).to have(1).item
+    end
+
+    it "should validate if operating_system and disk_capacity are both specified" do
+      config.operating_system = "UBUNTU_LATEST"
+      config.disk_capacity = { 0 => 25 }
       config.finalize!
       expect(config.validate(machine)["SoftLayer"]).to have(:no).item
     end
