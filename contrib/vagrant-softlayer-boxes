@@ -1,0 +1,408 @@
+#!/usr/bin/env ruby
+
+require 'getoptlong'
+require 'tmpdir'
+
+require 'rubygems'
+require 'softlayer_api'
+
+$sl = { 
+  :data => {
+    :create_opts => nil, 
+    :private_images => nil,
+    :public_images => nil
+  },
+  :service => { 
+    :account => nil, 
+    :virtual_guest => nil,
+    :virtual_guest_block_device_template_group => nil 
+  },
+  :sl_credentials => {
+    :api_key => nil, 
+    :endpoint_url => SoftLayer::API_PUBLIC_ENDPOINT,
+    :username => nil
+  }
+}
+
+$boxes = {
+  :data => {},
+  :datacenter => nil,
+  :dir => {
+    :boxes => "boxes",
+    :vagrantfiles => "vagrantfiles",
+    :boxes_root => nil,
+    :output_root => File.expand_path("."),
+    :vagrantfiles_root => nil
+  },
+  :domain => nil,
+  :file_templates => {
+    :created_by => "# vagrant-softlayer-boxes automatic template export",
+    :end => "end",
+    :image_detail => "# Compute or flex image details:",
+    :indent => Hash.new() { |hash, key| hash[key] = " " * key }, 
+    :metadata_json => "{\"provider\": \"softlayer\"}",
+    :os_templates_avail => "# Available versions of this OS template (based on VM property selections):",
+    :sl_config_start => "config.vm.provider :softlayer do |sl|",
+    :vagrant_config_start => "Vagrant.configure(\"2\") do |config|"
+  },
+  :filter => nil,
+  :images => {
+    :private => true,
+    :public => true
+  },
+  :metadata_path => nil,
+  :monthly_billing => nil,
+  :templates => true,
+  :vlan_private => nil,
+  :vlan_public => nil
+}
+
+def procCliOptions()
+  opts = GetoptLong.new(
+                        [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
+                        [ '--output_dir', '-o', GetoptLong::REQUIRED_ARGUMENT ],
+                        [ '--only_images', '-i', GetoptLong::NO_ARGUMENT ],
+                        [ '--only_private_images', '-p', GetoptLong::NO_ARGUMENT ],
+                        [ '--only_public_images', '-g', GetoptLong::NO_ARGUMENT ],
+                        [ '--only_templates', '-t', GetoptLong::NO_ARGUMENT ],
+                        [ '--default_domain', GetoptLong::REQUIRED_ARGUMENT ],
+                        [ '--default_datacenter', GetoptLong::REQUIRED_ARGUMENT ],
+                        [ '--default_monthly_billing', GetoptLong::NO_ARGUMENT ],
+                        [ '--default_vlan_private', GetoptLong::REQUIRED_ARGUMENT ],
+                        [ '--default_vlan_public', GetoptLong::REQUIRED_ARGUMENT ],
+                        [ '--sl_api_key', '-k', GetoptLong::REQUIRED_ARGUMENT ],
+                        [ '--sl_endpoint_url', '-e', GetoptLong::REQUIRED_ARGUMENT ],
+                        [ '--sl_username','-u', GetoptLong::REQUIRED_ARGUMENT ]
+                        )
+
+  opts.each do | opt, optval |
+    case opt
+      when '--help'
+        puts <<-EOF
+vagrant-softlayer-boxes [OPTION] [FILTER]
+
+--help, -h:
+    Print this help.
+
+--sl_username USERNAME, -u USERNAME:
+    Sets the SoftLayer account user name. If not specified, it is assumed SL_API_USERNAME environment variable is set.
+
+--sl_api_key SL_API_KEY, -k SL_API_KEY:
+    Sets the SoftLayer API key. If not specified, it is assumed SL_API_KEY environment variable is set.
+
+--sl_endpoint_url SL_API_BASE_URL, -e SL_API_BASE_URL:
+    Sets the SoftLayer endpoint URL. If not specified, it assumed SL_API_BASE_URL environment variable is set to API_PUBLIC_ENDPOINT or API_PRIVATE_ENDPOINT.
+    Defaults to API_PUBLIC_ENDPOINT.
+
+--output_dir OUTPUTDIR, -o OUTPUTDIR:
+    Sets the root directory to create box output under.
+
+--only_templates, -t:
+    Only create boxes for the CCI templates and not compute or flex images.
+
+--only_images, -i:
+    Only create boxes for the compute or flex images and not the CCI templates.
+
+--only_public_images, -g:
+    Only create boxes for the public compute or flex images and not the CCI templates.
+
+--only_private_images, -p:
+    Only create boxes for the private compute or flex images and not the CCI templates.
+
+--default_domain:
+    Set default vm domain.
+
+--default_datacenter:
+    Set default vm datacenter.
+
+--default_monthly_billing:
+    Set default billing type to monthly.
+
+--default_vlan_private:
+    Set default vm private vlan.
+
+--default_vlan_public:
+    Set default vm public vlan.
+
+FILTER
+    String used to filter template and compute/flex images by name to export boxes for specific matches. Supports filtering by regular expression.
+
+EOF
+
+        exit 0
+      
+      when '--sl_username'
+        $sl[:sl_credentials][:username] = optval.to_s
+    
+      when '--sl_api_key'
+        $sl[:sl_credentials][:api_key] = optval.to_s
+    
+      when '--sl_endpoint_url'
+        if ! [ "API_PUBLIC_ENDPOINT", "API_PRIVATE_ENDPOINT" ].include?(optval.to_s.upcase)
+          $stderr.puts "ERROR: Invalid endpoint_url value: " + optval.to_s.upcase
+          exit 2
+        end
+
+        $sl[:sl_credentials][:endpoint_url] = (optval.to_s.upcase == 'API_PUBLIC_ENDPOINT' ? SoftLayer::API_PUBLIC_ENDPOINT : SoftLayer::API_PRIVATE_ENDPOINT )
+
+      when '--output_dir'
+        if File.exists?(optval.to_s) && File.ftype(optval.to_s) != 'directory'
+          $stderr.puts "ERROR: Path is not a directory: " + optval.to_s
+          exit 2
+        end
+
+        $boxes[:dir][:output_root] = File.expand_path(optval.to_s)
+        $boxes[:dir][:vagrantfiles_root] = File.join($boxes[:dir][:output_root], $boxes[:dir][:vagrantfiles])
+        $boxes[:dir][:boxes_root] = File.join($boxes[:dir][:output_root], $boxes[:dir][:boxes])
+
+        if File.exists?($boxes[:dir][:vagrantfiles_root]) && File.ftype($boxes[:dir][:vagrantfiles_root]) != 'directory'
+          $stderr.puts "ERROR: Output directory subdir is not a directory: " + $boxes[:dir][:vagrantfiles_root]
+          exit 2
+        end
+
+        if File.exists?($boxes[:dir][:boxes_root]) && File.ftype($boxes[:dir][:boxes_root]) != 'directory'
+          $stderr.puts "ERROR: Output directory subdir is not a directory: " + $boxes[:dir][:boxes_root]
+          exit 2
+        end
+
+      when '--only_templates'
+        $boxes[:images][:public]  = false
+        $boxes[:images][:private] = false
+
+      when '--only_images'
+        $boxes[:templates] = false
+
+      when '--only_public_images'
+        $boxes[:templates]        = false
+        $boxes[:images][:private] = false
+
+      when '--only_private_images'
+        $boxes[:templates]       = false
+        $boxes[:images][:public] = false
+
+      when '--default_domain'
+        $boxes[:domain] = optval.to_s
+
+      when '--default_datacenter'
+        $boxes[:datacenter] = optval.to_s
+
+      when '--default_monthly_billing'
+        $boxes[:monthly_billing] = true
+
+      when '--default_vlan_private'
+        $boxes[:vlan_private] = optval.to_s
+
+      when'--default_vlan_public'
+        $boxes[:vlan_public] = optval.to_s
+
+    end
+  end
+
+  $boxes[:dir][:vagrantfiles_root] = File.join($boxes[:dir][:output_root], $boxes[:dir][:vagrantfiles])
+  $boxes[:dir][:boxes_root] = File.join($boxes[:dir][:output_root], $boxes[:dir][:boxes])
+  $boxes[:metadata_path] = File.join($boxes[:dir][:output_root], "metadata.json")
+  
+  begin
+    [ $boxes[:dir][:output_root], $boxes[:dir][:vagrantfiles_root], $boxes[:dir][:boxes_root] ].each do |path|
+      Dir.mkdir(path, 0755) if ! File.exists?(path)
+    end
+  rescue Exception => e
+    $stderr.puts "ERROR: Failed to create output directories: " + e.message
+    exit 1
+  end
+
+  $sl[:sl_credentials][:username] = ENV["SL_API_USERNAME"] if $sl[:sl_credentials][:username].nil? && ENV.include?("SL_API_USERNAME")
+  $sl[:sl_credentials][:api_key] = ENV["SL_API_KEY"]   if $sl[:sl_credentials][:api_key].nil? && ENV.include?("SL_API_KEY")
+  $sl[:sl_credentials][:endpoint_url] = (ENV["SL_API_BASE_URL"] == "API_PUBLIC_ENDPOINT" ? SoftLayer::API_PUBLIC_ENDPOINT : SoftLayer::API_PRIVATE_ENDPOINT ) if $sl[:sl_credentials][:endpoint_url].nil? && ENV.include?("SL_API_BASE_URL")
+
+  if $sl[:sl_credentials][:username].nil?
+    $stderr.puts "ERROR: No SoftLayer username specified"
+    exit 2
+  end
+  
+  if $sl[:sl_credentials][:username].nil?
+    $stderr.puts "ERROR: No SoftLayer user name specified"
+    exit 2
+  end
+
+  if $sl[:sl_credentials][:api_key].nil?
+    $stderr.puts "ERROR: No SoftLayer API key specified"
+    exit 2
+  end
+end
+
+def procCliArgs()
+  if ARGV.length > 2
+    $stderr.puts "ERROR: Invalid argument supplied, please check help"
+    exit 2
+  elsif ARGV.length == 1
+    begin
+      $boxes[:filter] = Regexp.new(ARGV[0], Regexp::IGNORECASE)
+    rescue Exception => e
+      $stderr.puts "ERROR: Filter value is not a valid regular expression: " + e.message
+      exit 2
+    end
+  end
+end
+
+def getBoxData()
+  begin
+    $sl[:service][:virtual_guest]                             = SoftLayer::Service.new("SoftLayer_Virtual_Guest", $sl[:sl_credentials]) if $boxes[:templates]
+    $sl[:service][:account]                                   = SoftLayer::Service.new("SoftLayer_Account", $sl[:sl_credentials]) if $boxes[:images][:private]
+    $sl[:service][:virtual_guest_block_device_template_group] = SoftLayer::Service.new("SoftLayer_Virtual_Guest_Block_Device_Template_Group", $sl[:sl_credentials]) if $boxes[:images][:public]
+  rescue Exception => e
+    $stderr.puts "ERROR: Failed to create SoftLayer service object: " + e.message
+    exit 1
+  end
+
+  begin
+    $sl[:data][:create_opts] = $sl[:service][:virtual_guest].getCreateObjectOptions if $boxes[:templates]
+    $sl[:data][:private_images] = $sl[:service][:account].getBlockDeviceTemplateGroups.delete_if { |block_device| ! block_device.has_key?("globalIdentifier") } if $boxes[:images][:private]
+    $sl[:data][:public_images] = $sl[:service][:virtual_guest_block_device_template_group].getPublicImages.delete_if { |block_device| ! block_device.has_key?("globalIdentifier") } if $boxes[:images][:public]
+  rescue Exception => e
+    $stderr.puts "ERROR: Failed to retrieve SoftLayer service data: " + e.message
+    exit 1
+  end
+
+  if $boxes[:templates]
+    $sl[:data][:create_opts]["operatingSystems"].each do |os|
+      boxgroup =  os["template"]["operatingSystemReferenceCode"].strip.gsub(/[()]/,'').gsub(/[^a-zA-Z0-9_.-]/, '_').upcase
+
+      #We dont want to allow separate instances for templates of same group name since the only difference is additional descriptions
+      if ! $boxes[:data].has_key?(boxgroup)
+        $boxes[:data][boxgroup] = Array.new()
+
+        $boxes[:data][boxgroup].push(
+                                     {
+                                       :type        => :template,
+                                       :name        => os["template"]["operatingSystemReferenceCode"],
+                                       :description => [ os["itemPrice"]["item"]["description"] ]
+                                     }
+                                     )
+      else
+        $boxes[:data][boxgroup][0][:description].push(os["itemPrice"]["item"]["description"])
+      end
+    end
+  end
+
+  $boxes[:images].each_key do |image_view|
+    if $boxes[:images][image_view]
+      $sl[:data][(image_view == :public ? :public_images : :private_images)].each do |image|
+        boxgroup = image["name"].strip.gsub(/[()]/,'').gsub(/[^a-zA-Z0-9_.-]/, '_').upcase
+
+        $boxes[:data][boxgroup] = Array.new() if ! $boxes[:data].has_key?(boxgroup)
+        $boxes[:data][boxgroup].push(
+                                    {
+                                      :type => :block_image,
+                                      :name => image["name"],
+                                      :global_id => image["globalIdentifier"],
+                                      :note => image["note"].to_s,
+                                      :summary => image["summary"].to_s,
+                                      :visibility => image_view
+                                    }
+                                    )
+      end
+    end
+  end
+end
+
+def filterBoxes()
+  if ! $boxes[:filter].nil?
+    $boxes[:data].each_key do |boxgroup|
+      begin
+        $boxes[:data][boxgroup].delete_if { |box| ! box[:name].match($boxes[:filter]) }
+      rescue Exception => e
+        $stderr.puts "ERROR: Failed to filter Softlayer boxes: " + e.message
+        exit 1
+      end
+    end
+  end
+end
+
+def saveBoxFiles()
+  begin
+    File.open($boxes[:metadata_path], "w", 0644) { |fout| fout.puts $boxes[:file_templates][:metadata_json] }
+  rescue Exception => e
+    $stderr.puts "ERROR: Failed to save box metadata JSON data: " + e.message
+    exit 1
+  end
+
+  $boxes[:data].each_key do |boxgroup|
+    $boxes[:data][boxgroup].each do |box|
+      boxFileName = ($boxes[:data][boxgroup].length > 1 ? boxgroup + "_" + ($boxes[:data][boxgroup].index(box) + 1).to_s : boxgroup)
+
+      begin
+        File.open(File.join($boxes[:dir][:vagrantfiles_root], boxFileName + ".vagrantfile"), "w", 0644) do |fout|
+          fout.puts $boxes[:file_templates][:created_by]
+          fout.puts
+
+          fout.puts $boxes[:file_templates][:os_templates_avail] if box[:type] == :template
+          fout.puts box[:description].map { |descr| "# " + descr }.join("\n") if box[:type] == :template
+
+          fout.puts $boxes[:file_templates][:image_detail] if box[:type] == :block_image
+          fout.puts "# Global Identifier: " + box[:global_id].to_s  if box[:type] == :block_image
+          fout.puts "# Name: " + box[:name] if box[:type] == :block_image
+          fout.puts "# Summary: " + box[:summary].to_s if box[:type] == :block_image
+          fout.puts "# Note: " + box[:note].to_s if box[:type] == :block_image
+          fout.puts "# Visibility: " + (box[:visibility] == :public ? "public" : "private" ) if box[:type] == :block_image
+
+          fout.puts
+          fout.puts $boxes[:file_templates][:vagrant_config_start]
+          fout.puts $boxes[:file_templates][:indent][4] + $boxes[:file_templates][:sl_config_start]
+
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.datacenter = \"" + $boxes[:datacenter] + "\"" if $boxes[:datacenter]
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.domain = \"" + $boxes[:domain] + "\"" if $boxes[:domain]
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.hourly_billing = false" if $boxes[:monthly_billing]
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.operating_system = \"" + box[:name] + "\"" if box[:type] == :template
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.image_id = \"" + box[:global_id].to_s + "\"" if box[:type] == :block_image
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.vlan_private = \"" + $boxes[:vlan_private] + "\"" if $boxes[:vlan_private]
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.vlan_public = \"" + $boxes[:vlan_public] + "\"" if $boxes[:vlan_public]
+
+          fout.puts $boxes[:file_templates][:indent][4] + $boxes[:file_templates][:end]
+          fout.puts $boxes[:file_templates][:end]
+        end
+      rescue Exception => e
+        $stderr.puts "ERROR: Failed to save box Vagrantfile: " + e.message
+        exit 1
+      end
+    end
+  end
+end
+
+def createBoxes()
+  $boxes[:data].each_key do |boxgroup|
+    $boxes[:data][boxgroup].each do |box|
+      boxFileName = ($boxes[:data][boxgroup].length > 1 ? boxgroup + "_" + ($boxes[:data][boxgroup].index(box) + 1).to_s : boxgroup)
+
+      begin
+        Dir.mktmpdir do |tmpDir|
+          FileUtils.cd(tmpDir) do 
+            FileUtils.cp($boxes[:metadata_path], File.join(tmpDir,"metadata.json"), :preserve => true)
+            FileUtils.cp(File.join($boxes[:dir][:vagrantfiles_root], boxFileName + ".vagrantfile"), File.join(tmpDir, "Vagrantfile"), :preserve => true)
+            
+            result = %x(tar -czvf "#{File.join($boxes[:dir][:boxes_root], boxFileName + ".box.tar.gz")}" Vagrantfile metadata.json)
+            
+            raise result if $?.exitstatus != 0
+            
+            FileUtils.mv(File.join($boxes[:dir][:boxes_root], boxFileName + ".box.tar.gz"), File.join($boxes[:dir][:boxes_root], boxFileName + ".box"), :force => true)
+            FileUtils.chmod(0644, File.join($boxes[:dir][:boxes_root], boxFileName + ".box"))
+          end
+        end
+      rescue Exception => e
+        $stderr.puts "ERROR: Failed to save Vagrant box: " + e.message
+        exit 1
+      end
+    end
+  end
+end
+
+def main()
+  procCliOptions()
+  procCliArgs()
+  getBoxData()
+  filterBoxes()
+  saveBoxFiles()
+  createBoxes()
+end
+
+main
