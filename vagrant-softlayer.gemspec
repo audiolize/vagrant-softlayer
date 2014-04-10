@@ -6,9 +6,11 @@ Gem::Specification.new do |spec|
   spec.version       = VagrantPlugins::SoftLayer::VERSION
   spec.authors       = "Audiolize GmbH"
   spec.email         = ""
+  spec.homepage      = "https://github.com/audiolize/vagrant-softlayer"
   spec.description   = "Enables Vagrant to manages SoftLayer CCI."
   spec.summary       = "Enables Vagrant to manages SoftLayer CCI."
-  
+  spec.license       = "MIT"
+
   # The following block of code determines the files that should be included
   # in the gem. It does this by reading all the files in the directory where
   # this gemspec is, and parsing out the ignored files from the gitignore.
