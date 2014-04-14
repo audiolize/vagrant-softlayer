@@ -138,6 +138,33 @@ chef, and puppet) to work!
 
 ## Other Examples
 
+### Multiple disks
+
+The `disk_capacity` parameter accepts an hash with the following structure:
+
+```
+{
+  disk_id => disk_size,
+  disk_id => disk_size,
+  ...
+}
+```
+
+Disk ID 1 is reserved is reserved for swap space, in the following example two disks
+of 25Gb and 100Gb will be provisioned:
+
+```
+Vagrant.configure("2") do |config|
+  # ... other stuff
+
+  config.vm.provider :softlayer do |sl, override|
+    # ... other stuff
+
+    sl.disk_capacity = { 0 => 25, 2 => 100 }
+  end
+end
+```
+
 ### Override SSH Username
 
 If you're running Vagrant with an user different from root, probably you need
