@@ -211,6 +211,10 @@ Use bundler to execute Vagrant:
 $ bundle exec vagrant up --provider=softlayer
 ```
 
+## Credits
+
+Emiliano Ticci (@emyl)
+Julio Lajara (@ju2wheels)
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/audiolize/vagrant-softlayer/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
