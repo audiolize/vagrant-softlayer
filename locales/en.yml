@@ -28,7 +28,7 @@ en:
         end
       img_guid_capacity_mutually_exclusive: |-
         The disk capacity can only be specified when using an operating
-        system reference code and not when using a specifc compute or
+        system reference code and not when using a specific compute or
         flex image guid. Please use one of the following options in the
         provider section:
 
