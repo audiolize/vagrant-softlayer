@@ -12,9 +12,9 @@ module VagrantPlugins
 
         def call(env)
           @env = env
-          
+
           @env[:ui].info I18n.t("vagrant_softlayer.vm.creating")
-          
+
           sl_warden { env[:sl_product_order].verifyOrder(env[:sl_virtual_guest].generateOrderTemplate(order_template)) }
 
           result = sl_warden { env[:sl_virtual_guest].createObject(order_template) }
@@ -43,8 +43,8 @@ module VagrantPlugins
 
           template["blockDevices"] =  @env[:machine].provider_config.disk_capacity.map{ |key,value| { "device"=> key.to_s, "diskImage" => { "capacity" => value.to_s } } } if @env[:machine].provider_config.disk_capacity
           template["datacenter"] = { :name => @env[:machine].provider_config.datacenter } if @env[:machine].provider_config.datacenter
-          template["blockDeviceTemplateGroup"] = { :globalIdentifier => @env[:machine].provider_config.image_id } if @env[:machine].provider_config.image_id
-          template["operatingSystemReferenceCode"] = @env[:machine].provider_config.operating_system if ! @env[:machine].provider_config.image_id
+          template["blockDeviceTemplateGroup"] = { :globalIdentifier => @env[:machine].provider_config.image_guid } if @env[:machine].provider_config.image_guid
+          template["operatingSystemReferenceCode"] = @env[:machine].provider_config.operating_system if !@env[:machine].provider_config.image_guid
           template["postInstallScriptUri"] = @env[:machine].provider_config.post_install if @env[:machine].provider_config.post_install
           template["primaryNetworkComponent"] = { :networkVlan => { :id => @env[:machine].provider_config.vlan_public } } if @env[:machine].provider_config.vlan_public
           template["primaryBackendNetworkComponent"] = { :networkVlan => { :id => @env[:machine].provider_config.vlan_private } } if @env[:machine].provider_config.vlan_private

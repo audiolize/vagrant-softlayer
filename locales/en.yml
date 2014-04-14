@@ -26,31 +26,31 @@ en:
         config.vm.provider :softlayer do |sl|
           sl.hostname = "vagrant"
         end
-      imggid_diskcapacity_mutually_exclusive: |-
+      img_guid_capacity_mutually_exclusive: |-
         The disk capacity can only be specified when using an operating
         system reference code and not when using a specifc compute or
-        flex image id. Please use one of the following options in the
+        flex image guid. Please use one of the following options in the
         provider section:
 
         config.vm.provider :softlayer do |sl|
-          sl.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+          sl.image_guid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
         end
 
         config.vm.provider :softlayer do |sl|
           sl.operating_system = "UBUNTU_LATEST"
 
-          #disk number 1 is reserved for SWAP space, see SoftLayer API
-          #CLI tool command 'sl cci create-options' for more info.
+          # Disk number 1 is reserved for SWAP space, see SoftLayer API
+          # CLI tool command 'sl cci create-options' for more info.
           sl.disk_capacity = { 0 => 25, 2 => 100, 3 => 2000 }
         end
-      imggid_osrefcode_mutually_exclusive: |-
-        The image id for a compute or flex image and the operating
+      img_guid_os_code_mutually_exclusive: |-
+        The image guid for a compute or flex image and the operating
         system reference code cannot be used at the same time.
         Please use only one of the following options in the provider
         section:
 
         config.vm.provider :softlayer do |sl|
-          sl.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+          sl.image_guid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
         end
 
         config.vm.provider :softlayer do |sl|
@@ -93,13 +93,13 @@ en:
         Exception class: %{class}
         Exception message: %{message}
       certificate_error: |-
-        The secure connection to the SoftLayer API has failed. This is 
+        The secure connection to the SoftLayer API has failed. This is
         generally caused by the OpenSSL configuration associated with
         the Ruby install being unaware of the system specific CA certs.
-        
+
         Please ensure that the SSL_CERT_FILE environment variable is set
         with a path to a certificate authority.
-        
+
         Linux example:
 
         export SSL_CERT_FILE=/opt/vagrant/embedded/cacert.pem
@@ -187,7 +187,7 @@ en:
       rebuilding: |-
         Rebuilding the SoftLayer instance...
       rebuild_confirmation: |-
-        Are you sure you want to rebuild the current VM? [y/N] 
+        Are you sure you want to rebuild the current VM? [y/N]
       rebuilt: |-
         SoftLayer instance successfully rebuilt!
       resuming: |-

@@ -21,7 +21,7 @@ describe VagrantPlugins::SoftLayer::Config do
     its("domain")           { should be_nil }
     its("hostname")         { should be_nil }
     its("hourly_billing")   { should be_true }
-    its("image_id")         { should be_nil }
+    its("image_guid")       { should be_nil }
     its("local_disk")       { should be_true }
     its("max_memory")       { should eq 1024 }
     its("network_speed")    { should eq 10 }
@@ -62,7 +62,7 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     context "strings" do
-      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :image_id, :operating_system, :post_install, :ssh_key, :user_data].each do |attribute|
+      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :image_guid, :operating_system, :post_install, :ssh_key, :user_data].each do |attribute|
         it "should not default #{attribute} if overridden" do
           config.send("#{attribute}=".to_sym, "foo")
           config.finalize!
@@ -75,7 +75,7 @@ describe VagrantPlugins::SoftLayer::Config do
       it "should not default disk_capacity if overriden" do
         config.send("disk_capacity=".to_sym, { 0 => 100, 2 => 25 } )
         config.finalize!
-        expect(config.send("disk_capacity")).to eq { 0 => 100, 2 => 25 } 
+        expect(config.send("disk_capacity")).to eq { 0 => 100, 2 => 25 }
       end
     end
   end
@@ -136,7 +136,7 @@ describe VagrantPlugins::SoftLayer::Config do
       config.disk_capacity    = { 0 => 25 }
       config.hostname         = "vagrant"
       config.hourly_billing   = true
-      config.image_id         = nil
+      config.image_guid       = nil
       config.local_disk       = true
       config.max_memory       = 1024
       config.network_speed    = 10
@@ -236,16 +236,16 @@ describe VagrantPlugins::SoftLayer::Config do
       expect(config.validate(machine)["SoftLayer"]).to have(:no).item
     end
 
-    it "should fail if disk_capcity and image_id are both specified" do
+    it "should fail if disk_capacity and image_guid are both specified" do
       config.disk_capacity = { 0 => 25 }
-      config.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+      config.image_guid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
       config.operating_system = nil
       config.finalize!
       expect(config.validate(machine)["SoftLayer"]).to have(1).item
     end
 
-    it "should fail if image_id and operating_system are both specified" do
-      config.image_id = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+    it "should fail if operating system and image_guid are both specified" do
+      config.image_guid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
       config.operating_system = "UBUNTU_LATEST"
       config.finalize!
       expect(config.validate(machine)["SoftLayer"]).to have(1).item

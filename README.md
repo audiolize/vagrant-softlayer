@@ -87,7 +87,7 @@ Parameter          | Description                                                
 `domain`           | The domain of the instance                                 |                         | yes
 `hostname`         | The hostname of the instance                               |                         | yes *
 `hourly_billing`   | Hourly billing type (false for monthly)                    | true                    | no
-`image_id`         | The global identifier for the compute or flex image to use |                         | no **
+`image_guid`       | The global identifier for the compute or flex image to use |                         | no **
 `local_disk`       | Use a local disk (false for SAN)                           | true                    | no
 `max_memory`       | The amount of RAM of the instance in Mb                    | 1024                    | no
 `network_speed`    | Network port speed in Mbps                                 | 10                      | no
@@ -102,7 +102,7 @@ Parameter          | Description                                                
 
 \* The `hostname` could be specified either using `config.vm.hostname` or the provider parameter.
 
-\** When defining the instance you can either specify an `image_id` or `operating_system` with optional `disk_capacity`.
+\** When defining the instance you can either specify an `image_guid` or `operating_system` with optional `disk_capacity`.
 
 These can be set like typical provider-specific configuration:
 
@@ -150,7 +150,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider :softlayer do |sl, override|
     # ... other stuff
-    
+
     override.ssh.username = "root"
   end
 end

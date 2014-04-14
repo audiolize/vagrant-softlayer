@@ -6,19 +6,19 @@ require 'tmpdir'
 require 'rubygems'
 require 'softlayer_api'
 
-$sl = { 
+$sl = {
   :data => {
-    :create_opts => nil, 
+    :create_opts => nil,
     :private_images => nil,
     :public_images => nil
   },
-  :service => { 
-    :account => nil, 
+  :service => {
+    :account => nil,
     :virtual_guest => nil,
-    :virtual_guest_block_device_template_group => nil 
+    :virtual_guest_block_device_template_group => nil
   },
   :sl_credentials => {
-    :api_key => nil, 
+    :api_key => nil,
     :endpoint_url => SoftLayer::API_PUBLIC_ENDPOINT,
     :username => nil
   }
@@ -39,7 +39,7 @@ $boxes = {
     :created_by => "# vagrant-softlayer-boxes automatic template export",
     :end => "end",
     :image_detail => "# Compute or flex image details:",
-    :indent => Hash.new() { |hash, key| hash[key] = " " * key }, 
+    :indent => Hash.new() { |hash, key| hash[key] = " " * key },
     :metadata_json => "{\"provider\": \"softlayer\"}",
     :os_templates_avail => "# Available versions of this OS template (based on VM property selections):",
     :sl_config_start => "config.vm.provider :softlayer do |sl|",
@@ -130,13 +130,13 @@ FILTER
 EOF
 
         exit 0
-      
+
       when '--sl_username'
         $sl[:sl_credentials][:username] = optval.to_s
-    
+
       when '--sl_api_key'
         $sl[:sl_credentials][:api_key] = optval.to_s
-    
+
       when '--sl_endpoint_url'
         if ! [ "API_PUBLIC_ENDPOINT", "API_PRIVATE_ENDPOINT" ].include?(optval.to_s.upcase)
           $stderr.puts "ERROR: Invalid endpoint_url value: " + optval.to_s.upcase
@@ -201,7 +201,7 @@ EOF
   $boxes[:dir][:vagrantfiles_root] = File.join($boxes[:dir][:output_root], $boxes[:dir][:vagrantfiles])
   $boxes[:dir][:boxes_root] = File.join($boxes[:dir][:output_root], $boxes[:dir][:boxes])
   $boxes[:metadata_path] = File.join($boxes[:dir][:output_root], "metadata.json")
-  
+
   begin
     [ $boxes[:dir][:output_root], $boxes[:dir][:vagrantfiles_root], $boxes[:dir][:boxes_root] ].each do |path|
       Dir.mkdir(path, 0755) if ! File.exists?(path)
@@ -219,7 +219,7 @@ EOF
     $stderr.puts "ERROR: No SoftLayer username specified"
     exit 2
   end
-  
+
   if $sl[:sl_credentials][:username].nil?
     $stderr.puts "ERROR: No SoftLayer user name specified"
     exit 2
@@ -354,7 +354,7 @@ def saveBoxFiles()
           fout.puts $boxes[:file_templates][:indent][8] + "sl.domain = \"" + $boxes[:domain] + "\"" if $boxes[:domain]
           fout.puts $boxes[:file_templates][:indent][8] + "sl.hourly_billing = false" if $boxes[:monthly_billing]
           fout.puts $boxes[:file_templates][:indent][8] + "sl.operating_system = \"" + box[:name] + "\"" if box[:type] == :template
-          fout.puts $boxes[:file_templates][:indent][8] + "sl.image_id = \"" + box[:global_id].to_s + "\"" if box[:type] == :block_image
+          fout.puts $boxes[:file_templates][:indent][8] + "sl.image_guid = \"" + box[:global_id].to_s + "\"" if box[:type] == :block_image
           fout.puts $boxes[:file_templates][:indent][8] + "sl.vlan_private = \"" + $boxes[:vlan_private] + "\"" if $boxes[:vlan_private]
           fout.puts $boxes[:file_templates][:indent][8] + "sl.vlan_public = \"" + $boxes[:vlan_public] + "\"" if $boxes[:vlan_public]
 
@@ -376,14 +376,14 @@ def createBoxes()
 
       begin
         Dir.mktmpdir do |tmpDir|
-          FileUtils.cd(tmpDir) do 
+          FileUtils.cd(tmpDir) do
             FileUtils.cp($boxes[:metadata_path], File.join(tmpDir,"metadata.json"), :preserve => true)
             FileUtils.cp(File.join($boxes[:dir][:vagrantfiles_root], boxFileName + ".vagrantfile"), File.join(tmpDir, "Vagrantfile"), :preserve => true)
-            
+
             result = %x(tar -czvf "#{File.join($boxes[:dir][:boxes_root], boxFileName + ".box.tar.gz")}" Vagrantfile metadata.json)
-            
+
             raise result if $?.exitstatus != 0
-            
+
             FileUtils.mv(File.join($boxes[:dir][:boxes_root], boxFileName + ".box.tar.gz"), File.join($boxes[:dir][:boxes_root], boxFileName + ".box"), :force => true)
             FileUtils.chmod(0644, File.join($boxes[:dir][:boxes_root], boxFileName + ".box"))
           end

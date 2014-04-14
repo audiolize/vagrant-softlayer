@@ -31,7 +31,7 @@ module VagrantPlugins
       attr_accessor :hourly_billing
 
       # The global identifier of the compute or flex image to use.
-      attr_accessor :image_id
+      attr_accessor :image_guid
 
       # The disk type of the instance (true for local, false for SAN).
       attr_accessor :local_disk
@@ -82,7 +82,7 @@ module VagrantPlugins
         @disk_capacity    = UNSET_VALUE
         @domain           = UNSET_VALUE
         @hostname         = UNSET_VALUE
-        @image_id         = UNSET_VALUE
+        @image_guid       = UNSET_VALUE
         @hourly_billing   = UNSET_VALUE
         @local_disk       = UNSET_VALUE
         @max_memory       = UNSET_VALUE
@@ -121,9 +121,9 @@ module VagrantPlugins
         opts[:method] ||= "ROUND ROBIN"
         opts[:type]   ||= "TCP"
         opts[:service]  = OpenStruct.new(:destination_port => nil, :health_check => "PING", :weight => 1)
-        
+
         yield opts[:service] if block_given?
-        
+
         # Convert all options that belongs to
         # an enumeration in uppercase.
         opts[:method].upcase!
@@ -162,7 +162,7 @@ module VagrantPlugins
         @hourly_billing = true if @hourly_billing == UNSET_VALUE
 
         # Disable the use of a specific block device image so we can leave the OS template as default
-        @image_id = nil if @image_id == UNSET_VALUE
+        @image_guid = nil if @image_guid == UNSET_VALUE
 
         # Use local disk by default.
         @local_disk = true if @local_disk == UNSET_VALUE
@@ -219,8 +219,8 @@ module VagrantPlugins
         errors << I18n.t("vagrant_softlayer.config.domain_required") if !@domain
         errors << I18n.t("vagrant_softlayer.config.ssh_key_required") if !@ssh_key
 
-        errors << I18n.t("vagrant_softlayer.config.imggid_osrefcode_mutually_exclusive") if @image_id && @operatng_system
-        errors << I18n.t("vagrant_softlayer.config.imggid_diskcapacity_mutually_exclusive") if @image_id && @disk_capacity
+        errors << I18n.t("vagrant_softlayer.config.img_guid_os_code_mutually_exclusive") if @image_guid && @operating_system
+        errors << I18n.t("vagrant_softlayer.config.img_guid_capacity_mutually_exclusive") if @image_guid && @disk_capacity
 
         #  Fail if both `vm.hostname` and `provider.hostname` are nil.
         if !@hostname && !machine.config.vm.hostname
