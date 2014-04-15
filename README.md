@@ -8,7 +8,7 @@
 This is a [Vagrant](http://www.vagrantup.com) plugin that adds a [SoftLayer](http://www.softlayer.com)
 provider to Vagrant, allowing Vagrant to control and provision SoftLayer CCI instances.
 
-**NOTE:** This plugin work both with Vagrant 1.3 and 1.4 (the latter is strongly advised).
+**NOTE:** This plugin work with Vagrant 1.3+, altough Vagrant 1.4+ is strongly advised.
 
 ## Features
 
