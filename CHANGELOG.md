@@ -1,4 +1,10 @@
-## 0.3.0 (unreleased)
+## 0.3.1 (June 3, 2014)
+
+BUG FIXES:
+
+  - Lock down softlayer_api gem to 1.0.x
+
+## 0.3.0 (April 15, 2014)
 
 NEW FEATURES:
 
