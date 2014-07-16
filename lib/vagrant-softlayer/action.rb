@@ -184,7 +184,11 @@ module VagrantPlugins
       # This action is called to bring the box up from nothing.
       def self.action_up
         Vagrant::Action::Builder.new.tap do |b|
-          b.use HandleBoxUrl
+          if defined?(HandleBox)
+            b.use HandleBox
+          else
+            b.use HandleBoxUrl
+          end
           b.use ConfigValidate
           b.use SetupSoftLayer
           b.use Call, Is, :not_created do |env1, b1|
