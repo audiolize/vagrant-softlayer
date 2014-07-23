@@ -24,6 +24,9 @@ module VagrantPlugins
       # The domain of the instance.
       attr_accessor :domain
 
+      # Force the use of the private IP for all communication even if a public IP is available
+      attr_accessor :force_private_ip
+
       # The hostname of the instance.
       attr_accessor :hostname
 
@@ -81,6 +84,7 @@ module VagrantPlugins
         @dedicated        = UNSET_VALUE
         @disk_capacity    = UNSET_VALUE
         @domain           = UNSET_VALUE
+        @force_private_ip = UNSET_VALUE
         @hostname         = UNSET_VALUE
         @image_guid       = UNSET_VALUE
         @hourly_billing   = UNSET_VALUE
@@ -153,6 +157,9 @@ module VagrantPlugins
 
         # Domain should be specified in Vagrantfile, so we set default to nil.
         @domain = nil if @domain == UNSET_VALUE
+
+        # Disable the use of force private IP so the default selection can take effect
+        @force_private_ip = false if @force_private_ip == UNSET_VALUE
 
         # Hostname should be specified in Vagrantfile, either using `config.vm.hostname`
         # or the provider specific configuration entry.

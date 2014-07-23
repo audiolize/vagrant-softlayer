@@ -19,6 +19,7 @@ describe VagrantPlugins::SoftLayer::Config do
     its("dedicated")        { should be_false }
     its("disk_capacity")    { should be_nil }
     its("domain")           { should be_nil }
+    its("force_private_ip") { should be_false }
     its("hostname")         { should be_nil }
     its("hourly_billing")   { should be_true }
     its("image_guid")       { should be_nil }
@@ -41,7 +42,7 @@ describe VagrantPlugins::SoftLayer::Config do
   describe "overriding defaults" do
     context "booleans" do
       [true, false].each do |bool|
-        [:dedicated, :hourly_billing, :local_disk, :manage_dns, :private_only].each do |attribute|
+        [:dedicated, :force_private_ip, :hourly_billing, :local_disk, :manage_dns, :private_only].each do |attribute|
           it "should accept both true and false for #{attribute}" do
             config.send("#{attribute}=".to_sym, bool)
             config.finalize!
@@ -134,6 +135,7 @@ describe VagrantPlugins::SoftLayer::Config do
       config.dedicated        = false
       config.domain           = "example.com"
       config.disk_capacity    = { 0 => 25 }
+      config.force_private_ip = false
       config.hostname         = "vagrant"
       config.hourly_billing   = true
       config.image_guid       = nil
