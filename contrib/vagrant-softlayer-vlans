@@ -1,0 +1,321 @@
+#!/usr/bin/env ruby
+
+require 'csv'
+require 'getoptlong'
+require 'json'
+require 'pp'
+
+require 'rubygems'
+require 'softlayer_api'
+
+class SoftLayerVlans
+  def initialize(sl_api_key, sl_username, sl_endpoint_url = SoftLayer::API_PUBLIC_ENDPOINT)
+    if ! [ SoftLayer::API_PUBLIC_ENDPOINT, SoftLayer::API_PRIVATE_ENDPOINT ].include?(sl_endpoint_url)
+      raise ArgumentError, "Invalid SoftLayer Endpoint URL provided, expected one of #{[ SoftLayer::API_PUBLIC_ENDPOINT, SoftLayer::API_PRIVATE_ENDPOINT ].inspect}: #{sl_endpoint_url.inspect}"
+    end
+
+    @sl_credentials = {
+      :api_key      => sl_api_key,
+      :endpoint_url => sl_endpoint_url,
+      :username     => sl_username
+    }
+
+    begin
+      @sl_services = {
+        :account => SoftLayer::Service.new("SoftLayer_Account", @sl_credentials)
+      }
+    rescue Exception => e
+      raise Exception, "Failed to initialize SoftLayer Account service for retrieving network vlan details: #{e.message}"
+    end
+  end
+
+  def [](vlanName)
+    vlanDetails = vlans(:vlanName => vlanName)
+    
+    raise KeyError, "Invalid vlan name provided as a SoftLayerVlans key: #{vlanName.inspect}" if vlanDetails.empty?
+    
+    return vlanDetails[0]
+  end
+
+  def vlans(filter = {:datacenterName => nil, :vlanName => nil, :vlanSpace => nil })
+    vlanDetails = []
+
+    if filter.class != Hash
+      raise TypeError, "Invalid value specified for filter, expected hash of filter values #{{:datacenterName => nil, :vlanName => nil, :vlanSpace => nil }.inspect}: #{filter.inspect}"
+    end
+
+    if ! filter.keys.select{|vlanProperty| ! [ :datacenterName, :vlanName, :vlanSpace ].include?(vlanProperty) }.empty?
+      raise KeyError, "Invalid vlan property used as filter key, expected one of #{[ :datacenterName, :vlanName, :vlanSpace ].inspect}: #{filter.keys.inspect}"
+    end
+
+    if filter.has_key?(:datacenterName) && ! filter[:datacenterName].nil? && ! [ Array, String ].include?(filter[:datacenterName].class)
+      raise TypeError, "Invalid type for filter key :datacenterName, must be a Array or String of datacenter name(s): #{filter[:datacenterName].class}"
+    end
+    
+    if filter.has_key?(:vlanName) && ! filter[:vlanName].nil? && ! [ Array, String ].include?(filter[:vlanName].class)
+      raise TypeError, "Invalid type for filter key :vlanName, must be a Array or String of vlan name(s): #{filter[:vlanName].class}"
+    end
+
+    if filter.has_key?(:vlanSpace) && ! filter[:vlanSpace].nil? && ! [ nil, :public, :private ].include?(filter[:vlanSpace])
+      raise ArgumentError, "Invalid value for filter key :vlanSpace, expected one of #{[ nil, :public, :private ].inspect}: #{filter[:vlanSpace].inspect}"
+    end
+
+    routers = @sl_services[:account].object_mask("mask[routers,routers.datacenter,routers.networkVlans,routers.networkVlans.networkSpace,routers.networkVlans.type]").getObject["routers"]
+
+    routers.each do |router|
+      router["networkVlans"].delete_if {|vlan| ! vlan.has_key?("name") || vlan["type"]["keyName"] != "STANDARD" }
+
+      router["networkVlans"].each do |vlan|
+        vlanDetails.push({
+                         :datacenter    => router["datacenter"]["name"],
+                         :id            => vlan["id"],
+                         :name          => vlan["name"],
+                         :qualifiedName => [ router["hostname"].split('.').reverse.join('.'), vlan["vlanNumber"] ].join('.'),
+                         :space         => vlan["networkSpace"].to_s.downcase.to_sym
+                       })
+      end
+    end
+    
+    if filter.has_key?(:datacenterName) && ! filter[:datacenterName].nil?
+      vlanDetails.delete_if {|vlan| (filter[:datacenterName].class == Array ?
+                                     (! filter[:datacenterName].include?(vlan[:datacenter])) :
+                                     (filter[:datacenterName] != vlan[:datacenter])
+                                     ) }
+    end
+
+    if filter.has_key?(:vlanName) && ! filter[:vlanName].nil?
+      vlanDetails.delete_if {|vlan| (filter[:vlanName].class == Array ?
+                                     (! (filter[:vlanName].include?(vlan[:name]) || filter[:vlanName].include?(vlan[:qualifiedName]))) :
+                                     (filter[:vlanName] != vlan[:name] && filter[:vlanName] != vlan[:qualifiedName])
+                                     ) }
+    end
+
+    vlanDetails.delete_if {|vlan| filter[:vlanSpace] != vlan[:space] } if filter.has_key?(:vlanSpace) && ! filter[:vlanSpace].nil?
+
+    return vlanDetails
+  end
+end
+
+class VagrantSoftLayerVlans
+  def initialize()
+    @cli_opts = [
+                 [ '--datacenter_name', '-d', GetoptLong::REQUIRED_ARGUMENT ],
+                 [ '--format',          '-f', GetoptLong::REQUIRED_ARGUMENT ],
+                 [ '--help',            '-h', GetoptLong::NO_ARGUMENT       ],
+                 [ '--sl_api_key',      '-k', GetoptLong::REQUIRED_ARGUMENT ],
+                 [ '--sl_endpoint_url', '-e', GetoptLong::REQUIRED_ARGUMENT ],
+                 [ '--sl_username',     '-u', GetoptLong::REQUIRED_ARGUMENT ],
+                 [ '--vlan_name',       '-v', GetoptLong::REQUIRED_ARGUMENT ],
+                 [ '--vlan_space',      '-s', GetoptLong::REQUIRED_ARGUMENT ]
+                ]
+    @config   = {
+      :columns        => [ :id, :name, :qualifiedName, :space, :datacenter ],
+      :columnLabels   => {
+        :datacenter    => 'datacenter',
+        :id            => 'id',
+        :name          => 'name',
+        :qualifiedName => 'qualified name',
+        :space         => 'space'
+      },
+      :datacenterName => nil,
+      :format         => :pretty,
+      :formats        => [ :csv, :json, :perty, :pretty, :raw ],
+      :sl_credentials => {
+        :api_key      => nil,
+        :endpoint_url => SoftLayer::API_PUBLIC_ENDPOINT,
+        :username     => nil
+      },
+      :vlanName       => nil,
+      :vlanSpace      => nil
+    }
+    @help     = <<-EOF
+vagrant-softlayer-vlans [OPTION]
+
+--datacenter_name, -d DCNAME,...:
+    Comma separated list of datacenter names to filter vlan results on.
+
+--format, -f FORMAT:
+    Sets the output format of the vlan results. Acceptable values are 'csv', 'json', 'perty', 'pretty', or 'raw'.
+    Defaults to 'pretty'.
+
+--help, -h:
+    Print this help.
+
+--sl_username USERNAME, -u USERNAME:
+    Sets the SoftLayer account user name. If not specified, it is assumed SL_API_USERNAME environment variable is set.
+
+--sl_api_key SL_API_KEY, -k SL_API_KEY:
+    Sets the SoftLayer API key. If not specified, it is assumed SL_API_KEY environment variable is set.
+
+--sl_endpoint_url SL_API_BASE_URL, -e SL_API_BASE_URL:
+    Sets the SoftLayer endpoint URL. If not specified, it assumed SL_API_BASE_URL environment variable is set to API_PUBLIC_ENDPOINT or API_PRIVATE_ENDPOINT.
+    Defaults to API_PUBLIC_ENDPOINT.
+
+--vlan_name, -v VLAN_NAME,...:
+    Comma separated list of vlan names to filter vlan results on. A vlan name can be the vlan name or qualified name.
+
+--vlan_space, -s VLAN_SPACE:
+    Sets the vlan space to filter  vlan results on. Acceptable spaces are 'public' or 'private'.
+
+EOF
+  end
+
+  def run()
+    procCliOptions
+
+    begin
+      slVlans = SoftLayerVlans.new(@config[:sl_credentials][:api_key], @config[:sl_credentials][:username], @config[:sl_credentials][:endpoint_url])
+    rescue Exception => e
+      $stderr.puts "ERROR: Failed to instantiate SoftLayerVlans instance: #{e.message}"
+      exit 1
+    end
+
+    begin
+      vlanDetails = slVlans.vlans(:datacenterName => @config[:datacenterName], :vlanName => @config[:vlanName], :vlanSpace => @config[:vlanSpace])
+    rescue Exception => e
+      $stderr.puts "ERROR: Failed to retrieve SoftLayer account vlans: #{e.message}"
+      exit 1
+    end
+
+    printVlans(vlanDetails) if ! vlanDetails.empty?
+  end
+
+  private
+
+  def procCliOptions()
+    begin
+      opts       = GetoptLong.new(*@cli_opts)
+      opts.quiet = true
+
+      opts.each do | opt, optval |
+        case opt
+        when '--datacenter_name'
+          @config[:datacenterName] = optval.to_s.split(',')
+
+        when '--format'
+          if ! @config[:formats].include?(optval.to_s.downcase.to_sym)
+            $stderr.puts "ERROR: Invalid format value, expected one of #{@config[:formats].map{|format| format.to_s}.inspect}: #{optval.inspect}"
+            exit 2
+          end
+
+          @config[:format] = optval.to_s.downcase.to_sym
+
+        when '--help'
+          puts @help
+          exit 0
+
+        when '--sl_api_key'
+          @config[:sl_credentials][:api_key] = optval.to_s
+          
+        when '--sl_endpoint_url'
+          if ! [ "API_PUBLIC_ENDPOINT", "API_PRIVATE_ENDPOINT" ].include?(optval.to_s.upcase)
+            $stderr.puts "ERROR: Invalid endpoint_url value: " + optval.to_s.upcase
+            exit 2
+          end
+          
+          @config[:sl_credentials][:endpoint_url] = (optval.to_s.upcase == 'API_PUBLIC_ENDPOINT' ? SoftLayer::API_PUBLIC_ENDPOINT : SoftLayer::API_PRIVATE_ENDPOINT )
+
+        when '--sl_username'
+          @config[:sl_credentials][:username] = optval.to_s
+
+        when '--vlan_name'
+          @config[:vlanName] = optval.to_s.split(',')
+
+        when '--vlan_space'
+          if ! [ :private, :public ].include?(optval.to_s.downcase.to_sym)
+            $stderr.puts "ERROR: Invalid vlan space value, expected one of #{[ 'private', 'public' ].inspect}: #{optval.inspect}"
+            exit 2
+          end
+
+          @config[:vlanSpace] = optval.to_s.downcase.to_sym
+
+        end
+      end
+    rescue GetoptLong::Error => e
+      $stderr.puts "vagrant-softlayer-vlans failed to process cli options: #{e.message}"
+      exit 1
+    end
+
+    @config[:sl_credentials][:username] = ENV["SL_API_USERNAME"] if @config[:sl_credentials][:username].nil? && ENV.include?("SL_API_USERNAME")
+    @config[:sl_credentials][:api_key]  = ENV["SL_API_KEY"]      if @config[:sl_credentials][:api_key].nil?  && ENV.include?("SL_API_KEY")
+
+    if @config[:sl_credentials][:endpoint_url].nil? && ENV.include?("SL_API_BASE_URL")
+      if ! [ 'API_PRIVATE_ENDPOINT', 'API_PUBLIC_ENDPOINT' ].include?(ENV["SL_API_BASE_URL"])
+        $stderr.puts "ERROR: Invalid SoftLayer endpoint URL specified in environment variable SL_API_BASE_URL, expected one of #{[ 'API_PRIVATE_ENDPOINT', 'API_PUBLIC_ENDPOINT' ].inspect}: #{ENV["SL_API_BASE_URL"].inspect}"
+        exit 2
+      end
+
+      @config[:sl_credentials][:endpoint_url] = (ENV["SL_API_BASE_URL"] == "API_PUBLIC_ENDPOINT" ? SoftLayer::API_PUBLIC_ENDPOINT : SoftLayer::API_PRIVATE_ENDPOINT )
+    end
+    
+    if @config[:sl_credentials][:username].nil?
+      $stderr.puts "ERROR: No SoftLayer username specified"
+      exit 2
+    end
+    
+    if @config[:sl_credentials][:username].nil?
+      $stderr.puts "ERROR: No SoftLayer user name specified"
+      exit 2
+    end
+    
+    if @config[:sl_credentials][:api_key].nil?
+      $stderr.puts "ERROR: No SoftLayer API key specified"
+      exit 2
+    end
+  end
+
+  def printVlans(vlanDetails)
+    case @config[:format]
+    when :csv
+      puts @config[:columns].map{|col| @config[:columnLabels][col]}.to_csv(:force_quotes => true)
+      
+      vlanDetails.each do |vlan|
+        csvRow = []
+
+        @config[:columns].each {|col| csvRow.push(vlan[col]) }
+
+        puts csvRow.to_csv(:force_quotes => true)
+      end
+
+    when :json 
+      puts JSON.pretty_generate(vlanDetails)
+
+    when :perty, :pretty
+      table = []
+      
+      table.push(@config[:columns].map{|col| @config[:columnLabels][col]})
+      
+      vlanDetails.each {|vlan| table.push(@config[:columns].map {|col| vlan[col].to_s}) }
+      
+      maxColWidths = table.transpose.map{|col| col.group_by(&:size).max.first + 2 }
+
+      puts ':' + maxColWidths.map{|colWidth| '.' * colWidth }.join(':') + ':'
+
+      print ':'
+
+      table[0].each_index { |col| print table[0][col].center(maxColWidths[col]) + ':' }
+
+      puts
+
+      puts ':' + maxColWidths.map{|colWidth| '.' * colWidth }.join(':') + ':'
+
+      table.shift
+
+      table.each do |row|
+        print ':'
+        
+        row.each_index { |col| print row[col].center(maxColWidths[col]) + ':' }
+
+        puts
+      end
+
+      puts ':' + maxColWidths.map{|colWidth| '.' * colWidth }.join(':') + ':'
+
+    when :raw
+      pp vlanDetails
+
+    end
+  end
+end
+
+VagrantSoftLayerVlans.new.run()
