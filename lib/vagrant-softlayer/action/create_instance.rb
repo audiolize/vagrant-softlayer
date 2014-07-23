@@ -33,10 +33,10 @@ module VagrantPlugins
           routers = @env[:sl_account].object_mask("mask[routers,routers.datacenter,routers.networkVlans,routers.networkVlans.networkSpace,routers.networkVlans.type]").getObject["routers"]
 
           routers.each do |router|
+            next if @env[:machine].provider_config.datacenter && router["datacenter"]["name"] != @env[:machine].provider_config.datacenter
             router["networkVlans"].each do |vlan|
               vlanQualifiedName = [ router["hostname"].split('.').reverse.join('.'), vlan["vlanNumber"] ].join('.')
-
-              return vlan["id"] if vlan.has_key?("name") && vlan["type"]["keyName"] != "STANDARD" && ( vlan["name"] == vlanName || vlanQualifiedName == vlanName )
+              return vlan["id"] if vlan.has_key?("name") && vlan["type"]["keyName"] != "STANDARD" && vlan["networkSpace"] == vlanSpace.to_s.upcase && ( vlan["name"] == vlanName || vlanQualifiedName == vlanName )
             end
           end
 
