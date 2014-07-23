@@ -62,7 +62,7 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     context "strings" do
-      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :image_guid, :operating_system, :post_install, :ssh_key, :user_data].each do |attribute|
+      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :image_guid, :operating_system, :post_install, :ssh_key, :user_data, :vlan_private, :vlan_public].each do |attribute|
         it "should not default #{attribute} if overridden" do
           config.send("#{attribute}=".to_sym, "foo")
           config.finalize!

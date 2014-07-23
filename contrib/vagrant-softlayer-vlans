@@ -37,6 +37,12 @@ class SoftLayerVlans
     return vlanDetails[0]
   end
 
+  def has_vlan?(vlanName)
+    vlanDetails = vlans(:vlanName => vlanName)
+
+    return ! vlanDetails.empty?
+  end
+
   def vlans(filter = {:datacenterName => nil, :vlanName => nil, :vlanSpace => nil })
     vlanDetails = []
 
