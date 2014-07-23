@@ -22,8 +22,9 @@ module VagrantPlugins
             :username     => env[:machine].provider_config.username
           }
 
-          env[:sl_virtual_guest] = ::SoftLayer::Service.new("SoftLayer_Virtual_Guest", env[:sl_credentials])
+          env[:sl_account]       = ::SoftLayer::Service.new("SoftLayer_Account",       env[:sl_credentials])
           env[:sl_product_order] = ::SoftLayer::Service.new("SoftLayer_Product_Order", env[:sl_credentials])
+          env[:sl_virtual_guest] = ::SoftLayer::Service.new("SoftLayer_Virtual_Guest", env[:sl_credentials])
 
           unless env[:machine].id.nil? || env[:machine].id.empty?
             env[:sl_machine] = env[:sl_virtual_guest].object_with_id(env[:machine].id.to_i)

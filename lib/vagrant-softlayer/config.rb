@@ -60,10 +60,10 @@ module VagrantPlugins
       # User defined metadata string.
       attr_accessor :user_data
 
-      # The ID of the private VLAN.
+      # The ID, name or qualified name of the private VLAN.
       attr_accessor :vlan_private
 
-      # The ID of the public VLAN.
+      # The ID, name or qualified name of the public VLAN.
       attr_accessor :vlan_public
 
       # The load balancers service groups to join.
@@ -205,6 +205,7 @@ module VagrantPlugins
       def ssh_keys=(value)
         @ssh_key = value
       end
+
       alias_method :ssh_key_id=, :ssh_keys=
       alias_method :ssh_key_ids=, :ssh_keys=
       alias_method :ssh_key_name=, :ssh_keys=

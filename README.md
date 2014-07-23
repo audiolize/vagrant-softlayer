@@ -97,8 +97,8 @@ Parameter          | Description                                                
 `ssh_key`          | ID or label of the SSH key(s) to provision                 |                         | yes
 `start_cpus`       | The number of processors of the instance                   | 1                       | no
 `user_data`        | User defined metadata string                               |                         | no
-`vlan_private`     | The ID of the private VLAN                                 | Automatically generated | no
-`vlan_public`      | The ID of the public VLAN                                  | Automatically generated | no
+`vlan_private`     | The ID, name or qualified name of the private VLAN         | Automatically generated | no
+`vlan_public`      | The ID, name or qualified name of the public VLAN          | Automatically generated | no
 
 \* The `hostname` could be specified either using `config.vm.hostname` or the provider parameter.
 
