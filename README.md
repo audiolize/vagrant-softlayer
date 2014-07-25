@@ -209,6 +209,10 @@ Also, a bunch of aliases for the `ssh_key` parameter are provided for better sem
 * `ssh_key_name`
 * `ssh_key_names`
 
+## Quick Start Guide
+
+For those new to Vagrant, see the [Quick Start Guide](https://github.com/audiolize/vagrant-softlayer/blob/master/QUICKSTART.md).
+
 ## Development
 
 To work on the `vagrant-softlayer` plugin, clone this repository out, and use
