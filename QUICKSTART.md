@@ -168,6 +168,22 @@ Install box from URI:
 Install box from [Vagrant Cloud](https://vagrantcloud.com/):
 `vagrant box add 'USERNAME/BOXNAME'`
 
+## Vagrant Box Standards vs SoftLayer Standards
+
+When creating or using [Vagrant](http://www.vagrantup.com), the accepted community standard is that
+the image be built with a default of having a `vagrant` user, with `vagrant` as the password, and
+the [Vagrant insecure public key](https://github.com/mitchellh/vagrant/blob/master/keys/vagrant.pub)
+applied to the `vagrant` user for ssh (the private key is always available to vagrant under
+`~/.vagrant.d/insecure_private_key`).
+
+Since SoftLayer doesnt really use [Vagrant](http://www.vagrantup.com), their image standards are bit
+different. As shown in example template below, it is necessary to change the default user for the OS
+you are using from `vagrant` to `root` (in the case of Linux).
+
+If you do not want to use password based logins, you will also have to set your public ssh keys in
+your SoftLayer portal, assign the name labels you set to `sl.ssh_keys`, and the path to their equivalent
+private key half in `cci.ssh.private_key_path`.
+
 ## Working with a Vagrantfile to define CCI(s)
 
 A `Vagrantfile` is the "configuration" file used by [Vagrant](http://www.vagrantup.com) when performing

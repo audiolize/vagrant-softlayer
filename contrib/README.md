@@ -6,6 +6,8 @@ for each item will be kept below.
 
 ## List of Contrib Items
 
+* `vagrantcloud` - Vagrant boxes used by Vagrant Cloud examples in the Quick Start
+guide or for manual install locally without having to use `vagrant-softlayer-boxes`.
 * `vagrant-softlayer-boxes` - Vagrant box creation tool which allows you to create
 starter boxes from those offered in the SoftLayer API or from public/private compute
 or flex images associated with your SoftLayer account.
