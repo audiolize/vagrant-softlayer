@@ -27,20 +27,20 @@ module VagrantPlugins
           @env[:machine].provider_config.hostname || @env[:machine].config.vm.hostname
         end
 
-        def get_vlan_id(vlanName, vlanSpace)
-          return vlanName if vlanName.class != String
+        def get_vlan_id(vlan_name, vlan_space)
+          return vlan_name if vlan_name.class != String
 
           routers = @env[:sl_account].object_mask("mask[routers,routers.datacenter,routers.networkVlans,routers.networkVlans.networkSpace,routers.networkVlans.type]").getObject["routers"]
 
           routers.each do |router|
             next if @env[:machine].provider_config.datacenter && router["datacenter"]["name"] != @env[:machine].provider_config.datacenter
             router["networkVlans"].each do |vlan|
-              vlanQualifiedName = [ router["hostname"].split('.').reverse.join('.'), vlan["vlanNumber"] ].join('.')
-              return vlan["id"] if vlan.has_key?("name") && vlan["type"]["keyName"] == "STANDARD" && vlan["networkSpace"] == vlanSpace.to_s.upcase && ( vlan["name"] == vlanName || vlanQualifiedName == vlanName )
+              vlan_qualified_name = [ router["hostname"].split('.').reverse.join('.'), vlan["vlanNumber"] ].join('.')
+              return vlan["id"] if vlan.has_key?("name") && vlan["type"]["keyName"] == "STANDARD" && vlan["networkSpace"] == vlan_space.to_s.upcase && (vlan["name"] == vlan_name || vlan_qualified_name == vlan_name)
             end
           end
 
-          raise Exception, "Failed to find #{vlanSpace.to_s} vlan id for SoftLayer #{vlanSpace.to_s} vlan with name or qualified name of #{vlanName.inspect}"
+          raise SLVlanIdNotFound
         end
 
         def order_template
@@ -57,16 +57,13 @@ module VagrantPlugins
             "startCpus"                    => @env[:machine].provider_config.start_cpus
           }
 
-          @env[:machine].provider_config.vlan_private = get_vlan_id(@env[:machine].provider_config.vlan_private, :private)
-          @env[:machine].provider_config.vlan_public  = get_vlan_id(@env[:machine].provider_config.vlan_public,  :public )
-
           template["blockDevices"]                   =  @env[:machine].provider_config.disk_capacity.map{ |key,value| { "device"=> key.to_s, "diskImage" => { "capacity" => value.to_s } } } if @env[:machine].provider_config.disk_capacity
           template["blockDeviceTemplateGroup"]       = { :globalIdentifier => @env[:machine].provider_config.image_guid } if @env[:machine].provider_config.image_guid
           template["datacenter"]                     = { :name => @env[:machine].provider_config.datacenter } if @env[:machine].provider_config.datacenter
           template["operatingSystemReferenceCode"]   = @env[:machine].provider_config.operating_system if !@env[:machine].provider_config.image_guid
           template["postInstallScriptUri"]           = @env[:machine].provider_config.post_install if @env[:machine].provider_config.post_install
-          template["primaryBackendNetworkComponent"] = { :networkVlan => { :id => @env[:machine].provider_config.vlan_private } } if @env[:machine].provider_config.vlan_private
-          template["primaryNetworkComponent"]        = { :networkVlan => { :id => @env[:machine].provider_config.vlan_public } } if @env[:machine].provider_config.vlan_public
+          template["primaryBackendNetworkComponent"] = { :networkVlan => { :id => get_vlan_id(@env[:machine].provider_config.vlan_private, :private) } } if @env[:machine].provider_config.vlan_private
+          template["primaryNetworkComponent"]        = { :networkVlan => { :id => get_vlan_id(@env[:machine].provider_config.vlan_public,  :public) } } if @env[:machine].provider_config.vlan_public
           template["userData"]                       = [ { :value => @env[:machine].provider_config.user_data } ] if @env[:machine].provider_config.user_data
 
           return template
