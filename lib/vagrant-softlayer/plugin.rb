@@ -29,7 +29,7 @@ module VagrantPlugins
         Config
       end
 
-      provider(:softlayer) do
+      provider(:softlayer, :parallel => true) do
         init_logging
         init_i18n
 
