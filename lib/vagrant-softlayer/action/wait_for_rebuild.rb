@@ -15,8 +15,8 @@ module VagrantPlugins
         def call(env)
           env[:ui].info I18n.t("vagrant_softlayer.vm.wait_for_rebuild")
 
-          # 20 minutes timeout
-          Timeout::timeout(1200) do
+          # Defaults to 20 minutes timeout
+          Timeout::timeout(env[:machine].provider_config.rebuild_timeout) do
             @logger.debug("Checking if the instance has been rebuilt.")
             sl_warden do
               while env[:sl_machine].object_mask("activeTransactionCount").getObject["activeTransactionCount"] > 0
