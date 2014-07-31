@@ -6,6 +6,9 @@ module VagrantPlugins
       # The API key to access SoftLayer.
       attr_accessor :api_key
 
+      # Th SoftLayer API request timeout value in seconds
+      attr_accessor :api_timeout
+
       # The endpoint SoftLayer API url.
       attr_accessor :endpoint_url
 
@@ -86,6 +89,7 @@ module VagrantPlugins
 
       def initialize
         @api_key      = UNSET_VALUE
+        @api_timeout  = UNSET_VALUE
         @endpoint_url = UNSET_VALUE
         @username     = UNSET_VALUE
 
@@ -154,6 +158,9 @@ module VagrantPlugins
         # They will default to nil if the environment variables are not present.
         @api_key  = ENV["SL_API_KEY"] if @api_key == UNSET_VALUE
         @username = ENV["SL_USERNAME"] if @username == UNSET_VALUE
+
+        # Th SoftLayer API request timeout value in seconds
+        @api_timeout = 60 if @api_timeout == UNSET_VALUE
 
         # Endpoint url defaults to public SoftLayer API url.
         @endpoint_url = API_PUBLIC_ENDPOINT if @endpoint_url == UNSET_VALUE

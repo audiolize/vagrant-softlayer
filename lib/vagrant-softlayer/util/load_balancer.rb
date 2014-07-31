@@ -62,9 +62,7 @@ module VagrantPlugins
         def setup
           # A plethora of service objects is required for managing
           # load balancers. We instanciate'em all here.
-          @services = {
-            "Account" => ::SoftLayer::Service.new("SoftLayer_Account", @env[:sl_credentials])
-          }
+          @services = { "Account" => @env[:sl_client]["SoftLayer_Account"] }
           [
             "Health_Check_Type",
             "Routing_Method",
@@ -73,12 +71,7 @@ module VagrantPlugins
             "Service_Group",
             "VirtualIpAddress",
             "VirtualServer"
-          ].each do |service|
-            @services[service] = ::SoftLayer::Service.new(
-              "SoftLayer_Network_Application_Delivery_Controller_LoadBalancer_#{service}",
-              @env[:sl_credentials]
-            )
-          end
+          ].each { |service| @services[service] = @env[:sl_client]["SoftLayer_Network_Application_Delivery_Controller_LoadBalancer_#{service}"] }
 
           # We create enumerations for the various configurables.
           @enums = {}

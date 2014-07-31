@@ -58,7 +58,7 @@ module VagrantPlugins
         # returned (this latter case is needed instead for creating
         # an instance).
         def ssh_keys(env, ids_only = false)
-          account  = ::SoftLayer::Service.new("SoftLayer_Account", env[:sl_credentials])
+          account  = env[:sl_client]["SoftLayer_Account"]
           acc_keys = sl_warden { account.object_mask("id", "label").getSshKeys }
           key_ids  = []
           Array(env[:machine].provider_config.ssh_key).each do |key|

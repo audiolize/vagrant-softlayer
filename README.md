@@ -109,6 +109,7 @@ Parameter          | Description                                                
 
 Parameter           | Description                               | Default         | Required
 ------------------- | ------------------------------------------| ----------------| --------
+`api_timeout`       | SoftLayer API call timeout                | 60              | no
 `provision_timeout` | Provisioning wait timeout in seconds      | 1200            | no
 `rebuild_timeout`   | Rebuild wait timeout in seconds           | 1200            | no
 `transaction_wait`  | Wait for order transactions to complete   | true            | no

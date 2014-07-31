@@ -20,6 +20,8 @@ $sl = {
   :sl_credentials => {
     :api_key => nil,
     :endpoint_url => SoftLayer::API_PUBLIC_ENDPOINT,
+    :timeout => 60,
+    :user_agent => "vagrant-softlayer",
     :username => nil
   }
 }
@@ -255,9 +257,9 @@ end
 
 def getBoxData()
   begin
-    $sl[:service][:virtual_guest]                             = SoftLayer::Service.new("SoftLayer_Virtual_Guest", $sl[:sl_credentials]) if $boxes[:templates]
-    $sl[:service][:account]                                   = SoftLayer::Service.new("SoftLayer_Account", $sl[:sl_credentials]) if $boxes[:images][:private]
-    $sl[:service][:virtual_guest_block_device_template_group] = SoftLayer::Service.new("SoftLayer_Virtual_Guest_Block_Device_Template_Group", $sl[:sl_credentials]) if $boxes[:images][:public]
+    $sl[:service][:virtual_guest]                             = SoftLayer::Client.new($sl[:sl_credentials])["SoftLayer_Virtual_Guest"] if $boxes[:templates]
+    $sl[:service][:account]                                   = SoftLayer::Client.new($sl[:sl_credentials])["SoftLayer_Account"] if $boxes[:images][:private]
+    $sl[:service][:virtual_guest_block_device_template_group] = SoftLayer::Client.new($sl[:sl_credentials])["SoftLayer_Virtual_Guest_Block_Device_Template_Group"] if $boxes[:images][:public]
   rescue Exception => e
     $stderr.puts "ERROR: Failed to create SoftLayer service object: " + e.message
     exit 1
