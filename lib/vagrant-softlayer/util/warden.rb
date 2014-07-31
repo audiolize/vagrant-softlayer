@@ -18,8 +18,8 @@ module VagrantPlugins
             yield
           rescue ::OpenSSL::SSL::SSLError
             raise Errors::SLCertificateError
-          rescue SocketError, ::SoftLayer::SoftLayerAPIException => e
-            if e.class == ::SoftLayer::SoftLayerAPIException && (e.message.start_with?("Unable to find object") || e.message.start_with?("Object does not exist"))
+          rescue Exception => e
+            if e.class != SocketError && (e.message.start_with?("Unable to find object") || e.message.start_with?("Object does not exist"))
               out = rescue_proc.call if rescue_proc
               if retry_interval > 0
                 sleep retry_interval
