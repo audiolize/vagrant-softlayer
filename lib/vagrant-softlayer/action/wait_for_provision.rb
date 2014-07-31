@@ -15,7 +15,7 @@ module VagrantPlugins
         def call(env)
           env[:ui].info I18n.t("vagrant_softlayer.vm.wait_for_provision")
 
-          env[:sl_machine] = env[:sl_virtual_guest].object_with_id(env[:machine].id.to_i)
+          env[:sl_machine] = env[:sl_client]["SoftLayer_Virtual_Guest"].object_with_id(env[:machine].id.to_i)
 
           retry_msg = lambda { @logger.debug("Object not found, retrying in 10 seconds.") }
 

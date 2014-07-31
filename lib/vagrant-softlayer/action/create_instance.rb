@@ -15,9 +15,9 @@ module VagrantPlugins
 
           @env[:ui].info I18n.t("vagrant_softlayer.vm.creating")
 
-          sl_warden { env[:sl_product_order].verifyOrder(env[:sl_virtual_guest].generateOrderTemplate(order_template)) }
+          sl_warden { env[:sl_client]["SoftLayer_Product_Order"].verifyOrder(env[:sl_client]["SoftLayer_Virtual_Guest"].generateOrderTemplate(order_template)) }
 
-          result = sl_warden { env[:sl_virtual_guest].createObject(order_template) }
+          result = sl_warden { env[:sl_client]["SoftLayer_Virtual_Guest"].createObject(order_template) }
           @env[:machine].id = result["id"].to_s
 
           @app.call(@env)
@@ -30,7 +30,7 @@ module VagrantPlugins
         def get_vlan_id(vlan_name, vlan_space)
           return vlan_name if vlan_name.class != String
 
-          routers = @env[:sl_account].object_mask("mask[routers,routers.datacenter,routers.networkVlans,routers.networkVlans.networkSpace,routers.networkVlans.type]").getObject["routers"]
+          routers = @env[:sl_client]["SoftLayer_Account"].object_mask("mask[routers,routers.datacenter,routers.networkVlans,routers.networkVlans.networkSpace,routers.networkVlans.type]").getObject["routers"]
 
           routers.each do |router|
             next if @env[:machine].provider_config.datacenter && router["datacenter"]["name"] != @env[:machine].provider_config.datacenter

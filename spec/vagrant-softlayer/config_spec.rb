@@ -12,6 +12,7 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     its("api_key")      { should be_nil }
+    its("api_timeout")  { should eq 60 }
     its("endpoint_url") { should eq VagrantPlugins::SoftLayer::API_PUBLIC_ENDPOINT }
     its("username")     { should be_nil }
 
@@ -55,7 +56,7 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     context "integers" do
-      [:max_memory, :network_speed, :provision_timeout, :rebuild_timeout, :ssh_key, :start_cpus, :vlan_private, :vlan_public].each do |attribute|
+      [:api_timeout, :max_memory, :network_speed, :provision_timeout, :rebuild_timeout, :ssh_key, :start_cpus, :vlan_private, :vlan_public].each do |attribute|
         it "should not default #{attribute} if overridden" do
           config.send("#{attribute}=".to_sym, 999)
           config.finalize!
@@ -130,8 +131,9 @@ describe VagrantPlugins::SoftLayer::Config do
   describe "validation" do
     before :each do
       # Setup some good configuration values
-      config.api_key  = "An API key"
-      config.username = "An username"
+      config.api_key     = "An API key"
+      config.api_timeout = 60
+      config.username    = "An username"
 
       config.datacenter        = "ams01"
       config.dedicated         = false

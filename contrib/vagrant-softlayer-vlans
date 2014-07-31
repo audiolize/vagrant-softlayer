@@ -9,7 +9,7 @@ require 'rubygems'
 require 'softlayer_api'
 
 class SoftLayerVlans
-  def initialize(sl_api_key, sl_username, sl_endpoint_url = SoftLayer::API_PUBLIC_ENDPOINT)
+  def initialize(sl_api_key, sl_username, sl_endpoint_url = SoftLayer::API_PUBLIC_ENDPOINT, sl_timeout = 60)
     if ! [ SoftLayer::API_PUBLIC_ENDPOINT, SoftLayer::API_PRIVATE_ENDPOINT ].include?(sl_endpoint_url)
       raise ArgumentError, "Invalid SoftLayer Endpoint URL provided, expected one of #{ [ SoftLayer::API_PUBLIC_ENDPOINT, SoftLayer::API_PRIVATE_ENDPOINT ].inspect }: #{ sl_endpoint_url.inspect }"
     end
@@ -17,12 +17,14 @@ class SoftLayerVlans
     @sl_credentials = {
       :api_key      => sl_api_key,
       :endpoint_url => sl_endpoint_url,
+      :timeout      => sl_timeout,
+      :user_agent   => "vagrant-softlayer",
       :username     => sl_username
     }
 
     begin
       @sl_services = {
-        :account => SoftLayer::Service.new("SoftLayer_Account", @sl_credentials)
+        :account => SoftLayer::Client.new( @sl_credentials)["SoftLayer_Account"]
       }
     rescue Exception => e
       raise Exception, "Failed to initialize SoftLayer Account service for retrieving network vlan details: #{ e.message }"
@@ -110,6 +112,7 @@ class VagrantSoftLayerVlans
                  [ '--help',            '-h', GetoptLong::NO_ARGUMENT       ],
                  [ '--sl_api_key',      '-k', GetoptLong::REQUIRED_ARGUMENT ],
                  [ '--sl_endpoint_url', '-e', GetoptLong::REQUIRED_ARGUMENT ],
+                 [ '--sl_timeout',      '-t', GetoptLong::REQUIRED_ARGUMENT ],
                  [ '--sl_username',     '-u', GetoptLong::REQUIRED_ARGUMENT ],
                  [ '--vlan_name',       '-v', GetoptLong::REQUIRED_ARGUMENT ],
                  [ '--vlan_space',      '-s', GetoptLong::REQUIRED_ARGUMENT ]
@@ -129,6 +132,7 @@ class VagrantSoftLayerVlans
       :sl_credentials  => {
         :api_key       => nil,
         :endpoint_url  => SoftLayer::API_PUBLIC_ENDPOINT,
+        :timeout       => 60,
         :username      => nil
       },
       :vlan_name       => nil,
@@ -137,30 +141,33 @@ class VagrantSoftLayerVlans
     @help     = <<-EOF
 vagrant-softlayer-vlans [OPTION]
 
---datacenter_name, -d DCNAME,...:
+--datacenter_name|-d DCNAME,...:
     Comma separated list of datacenter names to filter vlan results on.
 
---format, -f FORMAT:
+--format|-f FORMAT:
     Sets the output format of the vlan results. Acceptable values are 'csv', 'json', 'perty', 'pretty', or 'raw'.
     Defaults to 'pretty'.
 
---help, -h:
+--help|-h:
     Print this help.
 
---sl_username USERNAME, -u USERNAME:
-    Sets the SoftLayer account user name. If not specified, it is assumed SL_API_USERNAME environment variable is set.
-
---sl_api_key SL_API_KEY, -k SL_API_KEY:
+--sl_api_key|-k SL_API_KEY
     Sets the SoftLayer API key. If not specified, it is assumed SL_API_KEY environment variable is set.
 
---sl_endpoint_url SL_API_BASE_URL, -e SL_API_BASE_URL:
+--sl_endpoint_url|-e SL_API_BASE_URL
     Sets the SoftLayer endpoint URL. If not specified, it assumed SL_API_BASE_URL environment variable is set to API_PUBLIC_ENDPOINT or API_PRIVATE_ENDPOINT.
     Defaults to API_PUBLIC_ENDPOINT.
 
---vlan_name, -v VLAN_NAME,...:
+--sl_timeout|-t SL_TIMEOUT
+    Sets the SoftLayer API call timeout value in seconds.
+
+--sl_username|-u USERNAME
+    Sets the SoftLayer account user name. If not specified, it is assumed SL_API_USERNAME environment variable is set.
+
+--vlan_name|-v VLAN_NAME,...
     Comma separated list of vlan names to filter vlan results on. A vlan name can be the vlan name or qualified name.
 
---vlan_space, -s VLAN_SPACE:
+--vlan_space|-s VLAN_SPACE
     Sets the vlan space to filter  vlan results on. Acceptable spaces are 'public' or 'private'.
 
 EOF
@@ -170,7 +177,7 @@ EOF
     proc_cli_options
 
     begin
-      sl_vlans = SoftLayerVlans.new(@config[:sl_credentials][:api_key], @config[:sl_credentials][:username], @config[:sl_credentials][:endpoint_url])
+      sl_vlans = SoftLayerVlans.new(@config[:sl_credentials][:api_key], @config[:sl_credentials][:username], @config[:sl_credentials][:endpoint_url], @config[:sl_credentials][:timeout])
     rescue Exception => e
       $stderr.puts "ERROR: Failed to instantiate SoftLayerVlans instance: #{ e.message }"
       exit 1
@@ -220,6 +227,9 @@ EOF
           end
           
           @config[:sl_credentials][:endpoint_url] = (optval.to_s.upcase == 'API_PUBLIC_ENDPOINT' ? SoftLayer::API_PUBLIC_ENDPOINT : SoftLayer::API_PRIVATE_ENDPOINT)
+
+        when '--sl_timeoout'
+          @config[:sl_credentials][:timeout] = optval.to_i
 
         when '--sl_username'
           @config[:sl_credentials][:username] = optval.to_s

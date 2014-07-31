@@ -81,6 +81,7 @@ See [Join load balancers](https://github.com/audiolize/vagrant-softlayer/wiki/Jo
 
 Parameter           | Description                                                                      | Default                 | Required
 ------------------- | -------------------------------------------------------------------------------- | ----------------------- | --------
+`api_timeout`       | The timeout when accessing the SoftLayer API                                     | 60                      | no
 `datacenter`        | Datacenter shortname                                                             | First available         | no
 `dedicated`         | Allocate a dedicated CCI (non-shared host)                                       | false                   | no
 `disk_capacity`     | The capacity of each disk                                                        |                         | no **
