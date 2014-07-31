@@ -25,9 +25,9 @@ module VagrantPlugins
             "ipAddress.ipAddress",
             "virtualServers.serviceGroups.services.groupReferences",
             "virtualServers.serviceGroups.services.healthChecks"
-          ]
+          ].join(",")
           @logger.debug("Looking for existing load balancers.")
-          @load_balancers = sl_warden { @services["Account"].object_mask(mask).getAdcLoadBalancers }
+          @load_balancers = sl_warden { @services["Account"].object_mask("mask[#{mask}]").getAdcLoadBalancers }
           @logger.debug("Got load balancer configuration:")
           @logger.debug("-- #{@load_balancers}")
         end

@@ -24,7 +24,7 @@ class SoftLayerVlans
 
     begin
       @sl_services = {
-        :account => SoftLayer::Client.new( @sl_credentials)["SoftLayer_Account"]
+        :account => SoftLayer::Client.new(@sl_credentials)["SoftLayer_Account"]
       }
     rescue Exception => e
       raise Exception, "Failed to initialize SoftLayer Account service for retrieving network vlan details: #{ e.message }"
