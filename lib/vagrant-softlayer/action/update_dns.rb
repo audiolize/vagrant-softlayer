@@ -71,7 +71,7 @@ module VagrantPlugins
           end
 
           # Lookup the DNS zone
-          zone   = ::SoftLayer::Service.new("SoftLayer_Dns_Domain", @env[:sl_credentials])
+          zone   = @env[:sl_client]["SoftLayer_Dns_Domain"]
           domain = @env[:machine].provider_config.domain
 
           @logger.debug("Looking for #{domain} zone into the SoftLayer zone list.")
@@ -80,7 +80,7 @@ module VagrantPlugins
           @logger.debug("Found DNS zone: #{@dns_zone.inspect}")
 
           # Add or remove the resource record
-          @resource = ::SoftLayer::Service.new("SoftLayer_Dns_Domain_ResourceRecord", @env[:sl_credentials])
+          @resource = @env[:sl_client]["SoftLayer_Dns_Domain_ResourceRecord"]
           case @env[:machine_action]
           when :up
             add_record unless self.dns_id

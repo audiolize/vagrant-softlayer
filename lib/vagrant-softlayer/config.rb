@@ -6,6 +6,9 @@ module VagrantPlugins
       # The API key to access SoftLayer.
       attr_accessor :api_key
 
+      # Th SoftLayer API request timeout value in seconds
+      attr_accessor :api_timeout
+
       # The endpoint SoftLayer API url.
       attr_accessor :endpoint_url
 
@@ -23,6 +26,9 @@ module VagrantPlugins
 
       # The domain of the instance.
       attr_accessor :domain
+
+      # Force the use of the private IP for all communication even if a public IP is available
+      attr_accessor :force_private_ip
 
       # The hostname of the instance.
       attr_accessor :hostname
@@ -51,6 +57,12 @@ module VagrantPlugins
       # Whether or not the instance only has access to the private network.
       attr_accessor :private_only
 
+      # The amount of time in seconds to wait for provision to complete.
+      attr_accessor :provision_timeout
+
+      # The amount of time in seconds to wait for rebuild to complete.
+      attr_accessor :rebuild_timeout
+
       # The id or name of the ssh key to be provisioned.
       attr_accessor :ssh_key
 
@@ -60,10 +72,10 @@ module VagrantPlugins
       # User defined metadata string.
       attr_accessor :user_data
 
-      # The ID of the private VLAN.
+      # The ID, name or qualified name of the private VLAN.
       attr_accessor :vlan_private
 
-      # The ID of the public VLAN.
+      # The ID, name or qualified name of the public VLAN.
       attr_accessor :vlan_public
 
       # The load balancers service groups to join.
@@ -74,27 +86,31 @@ module VagrantPlugins
 
       def initialize
         @api_key      = UNSET_VALUE
+        @api_timeout  = UNSET_VALUE
         @endpoint_url = UNSET_VALUE
         @username     = UNSET_VALUE
 
-        @datacenter       = UNSET_VALUE
-        @dedicated        = UNSET_VALUE
-        @disk_capacity    = UNSET_VALUE
-        @domain           = UNSET_VALUE
-        @hostname         = UNSET_VALUE
-        @image_guid       = UNSET_VALUE
-        @hourly_billing   = UNSET_VALUE
-        @local_disk       = UNSET_VALUE
-        @max_memory       = UNSET_VALUE
-        @network_speed    = UNSET_VALUE
-        @operating_system = UNSET_VALUE
-        @post_install     = UNSET_VALUE
-        @private_only     = UNSET_VALUE
-        @ssh_key          = UNSET_VALUE
-        @start_cpus       = UNSET_VALUE
-        @user_data        = UNSET_VALUE
-        @vlan_private     = UNSET_VALUE
-        @vlan_public      = UNSET_VALUE
+        @datacenter        = UNSET_VALUE
+        @dedicated         = UNSET_VALUE
+        @disk_capacity     = UNSET_VALUE
+        @domain            = UNSET_VALUE
+        @force_private_ip  = UNSET_VALUE
+        @hostname          = UNSET_VALUE
+        @image_guid        = UNSET_VALUE
+        @hourly_billing    = UNSET_VALUE
+        @local_disk        = UNSET_VALUE
+        @max_memory        = UNSET_VALUE
+        @network_speed     = UNSET_VALUE
+        @operating_system  = UNSET_VALUE
+        @post_install      = UNSET_VALUE
+        @private_only      = UNSET_VALUE
+        @provision_timeout = UNSET_VALUE
+        @rebuild_timeout   = UNSET_VALUE
+        @ssh_key           = UNSET_VALUE
+        @start_cpus        = UNSET_VALUE
+        @user_data         = UNSET_VALUE
+        @vlan_private      = UNSET_VALUE
+        @vlan_public       = UNSET_VALUE
 
         @load_balancers = []
         @manage_dns     = UNSET_VALUE
@@ -139,6 +155,9 @@ module VagrantPlugins
         @api_key  = ENV["SL_API_KEY"] if @api_key == UNSET_VALUE
         @username = ENV["SL_USERNAME"] if @username == UNSET_VALUE
 
+        # Th SoftLayer API request timeout value in seconds
+        @api_timeout = 60 if @api_timeout == UNSET_VALUE
+
         # Endpoint url defaults to public SoftLayer API url.
         @endpoint_url = API_PUBLIC_ENDPOINT if @endpoint_url == UNSET_VALUE
 
@@ -153,6 +172,9 @@ module VagrantPlugins
 
         # Domain should be specified in Vagrantfile, so we set default to nil.
         @domain = nil if @domain == UNSET_VALUE
+
+        # Disable the use of force private IP so the default selection can take effect
+        @force_private_ip = false if @force_private_ip == UNSET_VALUE
 
         # Hostname should be specified in Vagrantfile, either using `config.vm.hostname`
         # or the provider specific configuration entry.
@@ -182,6 +204,12 @@ module VagrantPlugins
         # Private-network only is false by default.
         @private_only = false if @private_only == UNSET_VALUE
 
+        # The amount of time in seconds to wait for provision to complete.
+        @provision_timeout = 1200 if @provision_timeout == UNSET_VALUE
+
+        # The amount of time in seconds to wait for rebuild to complete.
+        @rebuild_timeout = 1200 if @rebuild_timeout == UNSET_VALUE
+
         # SSH key should be specified in Vagrantfile, so we set default to nil.
         @ssh_key = nil if @ssh_key == UNSET_VALUE
 
@@ -205,6 +233,7 @@ module VagrantPlugins
       def ssh_keys=(value)
         @ssh_key = value
       end
+
       alias_method :ssh_key_id=, :ssh_keys=
       alias_method :ssh_key_ids=, :ssh_keys=
       alias_method :ssh_key_name=, :ssh_keys=

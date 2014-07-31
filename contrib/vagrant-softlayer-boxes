@@ -20,6 +20,8 @@ $sl = {
   :sl_credentials => {
     :api_key => nil,
     :endpoint_url => SoftLayer::API_PUBLIC_ENDPOINT,
+    :timeout => 60,
+    :user_agent => "vagrant-softlayer",
     :username => nil
   }
 }
@@ -213,7 +215,15 @@ EOF
 
   $sl[:sl_credentials][:username] = ENV["SL_API_USERNAME"] if $sl[:sl_credentials][:username].nil? && ENV.include?("SL_API_USERNAME")
   $sl[:sl_credentials][:api_key] = ENV["SL_API_KEY"]   if $sl[:sl_credentials][:api_key].nil? && ENV.include?("SL_API_KEY")
-  $sl[:sl_credentials][:endpoint_url] = (ENV["SL_API_BASE_URL"] == "API_PUBLIC_ENDPOINT" ? SoftLayer::API_PUBLIC_ENDPOINT : SoftLayer::API_PRIVATE_ENDPOINT ) if $sl[:sl_credentials][:endpoint_url].nil? && ENV.include?("SL_API_BASE_URL")
+
+  if $sl[:sl_credentials][:endpoint_url].nil? && ENV.include?("SL_API_BASE_URL")
+    if ! [ 'API_PRIVATE_ENDPOINT', 'API_PUBLIC_ENDPOINT' ].include?(ENV["SL_API_BASE_URL"])
+      $stderr.puts "ERROR: Invalid SoftLayer endpoint URL specified in environment variable SL_API_BASE_URL, expected one of #{[ 'API_PRIVATE_ENDPOINT', 'API_PUBLIC_ENDPOINT' ].inspect}: #{ENV["SL_API_BASE_URL"].inspect}"
+      exit 2
+    end
+
+    $sl[:sl_credentials][:endpoint_url] = (ENV["SL_API_BASE_URL"] == "API_PUBLIC_ENDPOINT" ? SoftLayer::API_PUBLIC_ENDPOINT : SoftLayer::API_PRIVATE_ENDPOINT ) 
+  end
 
   if $sl[:sl_credentials][:username].nil?
     $stderr.puts "ERROR: No SoftLayer username specified"
@@ -247,9 +257,9 @@ end
 
 def getBoxData()
   begin
-    $sl[:service][:virtual_guest]                             = SoftLayer::Service.new("SoftLayer_Virtual_Guest", $sl[:sl_credentials]) if $boxes[:templates]
-    $sl[:service][:account]                                   = SoftLayer::Service.new("SoftLayer_Account", $sl[:sl_credentials]) if $boxes[:images][:private]
-    $sl[:service][:virtual_guest_block_device_template_group] = SoftLayer::Service.new("SoftLayer_Virtual_Guest_Block_Device_Template_Group", $sl[:sl_credentials]) if $boxes[:images][:public]
+    $sl[:service][:virtual_guest]                             = SoftLayer::Client.new($sl[:sl_credentials])["SoftLayer_Virtual_Guest"] if $boxes[:templates]
+    $sl[:service][:account]                                   = SoftLayer::Client.new($sl[:sl_credentials])["SoftLayer_Account"] if $boxes[:images][:private]
+    $sl[:service][:virtual_guest_block_device_template_group] = SoftLayer::Client.new($sl[:sl_credentials])["SoftLayer_Virtual_Guest_Block_Device_Template_Group"] if $boxes[:images][:public]
   rescue Exception => e
     $stderr.puts "ERROR: Failed to create SoftLayer service object: " + e.message
     exit 1

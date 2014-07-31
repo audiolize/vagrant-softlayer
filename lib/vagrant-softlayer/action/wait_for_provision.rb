@@ -15,15 +15,15 @@ module VagrantPlugins
         def call(env)
           env[:ui].info I18n.t("vagrant_softlayer.vm.wait_for_provision")
 
-          env[:sl_machine] = env[:sl_virtual_guest].object_with_id(env[:machine].id.to_i)
+          env[:sl_machine] = env[:sl_client]["SoftLayer_Virtual_Guest"].object_with_id(env[:machine].id.to_i)
 
           retry_msg = lambda { @logger.debug("Object not found, retrying in 10 seconds.") }
 
-          # 20 minutes timeout
-          Timeout::timeout(1200) do
+          # Defaults to 20 minutes timeout
+          Timeout::timeout(env[:machine].provider_config.provision_timeout) do
             @logger.debug("Checking if the newly ordered machine has been provisioned.")
             sl_warden(retry_msg, 10) do
-              while env[:sl_machine].getPowerState["name"] != "Running" || env[:sl_machine].object_mask( { "provisionDate" => "" } ).getObject == {}
+              while env[:sl_machine].getPowerState["name"] != "Running" || env[:sl_machine].object_mask("mask[provisionDate]").getObject == {}
                 @logger.debug("The machine is still provisioning. Retrying in 10 seconds.")
                 sleep 10
               end

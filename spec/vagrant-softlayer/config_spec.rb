@@ -12,27 +12,31 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     its("api_key")      { should be_nil }
+    its("api_timeout")  { should eq 60 }
     its("endpoint_url") { should eq VagrantPlugins::SoftLayer::API_PUBLIC_ENDPOINT }
     its("username")     { should be_nil }
 
-    its("datacenter")       { should be_nil }
-    its("dedicated")        { should be_false }
-    its("disk_capacity")    { should be_nil }
-    its("domain")           { should be_nil }
-    its("hostname")         { should be_nil }
-    its("hourly_billing")   { should be_true }
-    its("image_guid")       { should be_nil }
-    its("local_disk")       { should be_true }
-    its("max_memory")       { should eq 1024 }
-    its("network_speed")    { should eq 10 }
-    its("operating_system") { should eq "UBUNTU_LATEST" }
-    its("post_install")     { should be_nil }
-    its("private_only")     { should be_false }
-    its("ssh_key")          { should be_nil }
-    its("start_cpus")       { should eq 1 }
-    its("user_data")        { should be_nil }
-    its("vlan_private")     { should be_nil }
-    its("vlan_public")      { should be_nil }
+    its("datacenter")        { should be_nil }
+    its("dedicated")         { should be_false }
+    its("disk_capacity")     { should be_nil }
+    its("domain")            { should be_nil }
+    its("force_private_ip")  { should be_false }
+    its("hostname")          { should be_nil }
+    its("hourly_billing")    { should be_true }
+    its("image_guid")        { should be_nil }
+    its("local_disk")        { should be_true }
+    its("max_memory")        { should eq 1024 }
+    its("network_speed")     { should eq 10 }
+    its("operating_system")  { should eq "UBUNTU_LATEST" }
+    its("post_install")      { should be_nil }
+    its("private_only")      { should be_false }
+    its("provision_timeout") { should eq 1200 }
+    its("rebuild_timeout")   { should eq 1200 }
+    its("ssh_key")           { should be_nil }
+    its("start_cpus")        { should eq 1 }
+    its("user_data")         { should be_nil }
+    its("vlan_private")      { should be_nil }
+    its("vlan_public")       { should be_nil }
 
     its("load_balancers") { should eq [] }
     its("manage_dns")     { should be_false }
@@ -41,7 +45,7 @@ describe VagrantPlugins::SoftLayer::Config do
   describe "overriding defaults" do
     context "booleans" do
       [true, false].each do |bool|
-        [:dedicated, :hourly_billing, :local_disk, :manage_dns, :private_only].each do |attribute|
+        [:dedicated, :force_private_ip, :hourly_billing, :local_disk, :manage_dns, :private_only].each do |attribute|
           it "should accept both true and false for #{attribute}" do
             config.send("#{attribute}=".to_sym, bool)
             config.finalize!
@@ -52,7 +56,7 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     context "integers" do
-      [:max_memory, :network_speed, :ssh_key, :start_cpus, :vlan_private, :vlan_public].each do |attribute|
+      [:api_timeout, :max_memory, :network_speed, :provision_timeout, :rebuild_timeout, :ssh_key, :start_cpus, :vlan_private, :vlan_public].each do |attribute|
         it "should not default #{attribute} if overridden" do
           config.send("#{attribute}=".to_sym, 999)
           config.finalize!
@@ -62,7 +66,7 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     context "strings" do
-      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :image_guid, :operating_system, :post_install, :ssh_key, :user_data].each do |attribute|
+      [:api_key, :datacenter, :endpoint_url, :username, :domain, :hostname, :image_guid, :operating_system, :post_install, :ssh_key, :user_data, :vlan_private, :vlan_public].each do |attribute|
         it "should not default #{attribute} if overridden" do
           config.send("#{attribute}=".to_sym, "foo")
           config.finalize!
@@ -127,28 +131,32 @@ describe VagrantPlugins::SoftLayer::Config do
   describe "validation" do
     before :each do
       # Setup some good configuration values
-      config.api_key  = "An API key"
-      config.username = "An username"
+      config.api_key     = "An API key"
+      config.api_timeout = 60
+      config.username    = "An username"
 
-      config.datacenter       = "ams01"
-      config.dedicated        = false
-      config.domain           = "example.com"
-      config.disk_capacity    = { 0 => 25 }
-      config.hostname         = "vagrant"
-      config.hourly_billing   = true
-      config.image_guid       = nil
-      config.local_disk       = true
-      config.max_memory       = 1024
-      config.network_speed    = 10
-      config.operating_system = "UBUNTU_LATEST"
-      config.post_install     = "http://example.com/foo"
-      config.ssh_key          = ["First key", "Second key"]
-      config.start_cpus       = 1
-      config.user_data        = "some metadata"
-      config.vlan_private     = 111
-      config.vlan_public      = 222
+      config.datacenter        = "ams01"
+      config.dedicated         = false
+      config.domain            = "example.com"
+      config.disk_capacity     = { 0 => 25 }
+      config.force_private_ip  = false
+      config.hostname          = "vagrant"
+      config.hourly_billing    = true
+      config.image_guid        = nil
+      config.local_disk        = true
+      config.max_memory        = 1024
+      config.network_speed     = 10
+      config.operating_system  = "UBUNTU_LATEST"
+      config.post_install      = "http://example.com/foo"
+      config.provision_timeout = 1200
+      config.rebuild_timeout   = 1200
+      config.ssh_key           = ["First key", "Second key"]
+      config.start_cpus        = 1
+      config.user_data         = "some metadata"
+      config.vlan_private      = 111
+      config.vlan_public       = 222
 
-      config.manage_dns       = false
+      config.manage_dns        = false
 
       machine.stub_chain(:config, :vm, :hostname).and_return(nil)
     end
