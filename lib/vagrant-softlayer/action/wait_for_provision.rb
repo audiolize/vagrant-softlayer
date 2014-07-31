@@ -23,7 +23,7 @@ module VagrantPlugins
           Timeout::timeout(env[:machine].provider_config.provision_timeout) do
             @logger.debug("Checking if the newly ordered machine has been provisioned.")
             sl_warden(retry_msg, 10) do
-              while env[:sl_machine].getPowerState["name"] != "Running" || env[:sl_machine].object_mask( { "provisionDate" => "" } ).getObject == {}
+              while env[:sl_machine].getPowerState["name"] != "Running" || env[:sl_machine].object_mask("mask[provisionDate]").getObject == {}
                 @logger.debug("The machine is still provisioning. Retrying in 10 seconds.")
                 sleep 10
               end

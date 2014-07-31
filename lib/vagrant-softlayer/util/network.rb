@@ -36,8 +36,8 @@ module VagrantPlugins
         def ip_address_record(env)
           data_type = env[:machine].provider_config.private_only ? "primaryBackendNetworkComponent" : "primaryNetworkComponent"
           data_type = "primaryBackendNetworkComponent" if env[:machine].provider_config.force_private_ip
-          mask      = { data_type => { "primaryIpAddressRecord" => ["id", "ipAddress"] } }
-          record    = sl_warden { env[:sl_machine].object_mask(mask).getObject }
+          mask      = "#{data_type}.primaryIpAddressRecord.id,#{data_type}.primaryIpAddressRecord.ipAddress"
+          record    = sl_warden { env[:sl_machine].object_mask("mask[#{mask}]").getObject }
           return {
             :address => record[data_type]["primaryIpAddressRecord"]["ipAddress"],
             :id      => record[data_type]["primaryIpAddressRecord"]["id"]
@@ -59,7 +59,7 @@ module VagrantPlugins
         # an instance).
         def ssh_keys(env, ids_only = false)
           account  = env[:sl_client]["SoftLayer_Account"]
-          acc_keys = sl_warden { account.object_mask("id", "label").getSshKeys }
+          acc_keys = sl_warden { account.object_mask("mask[id,label]").getSshKeys }
           key_ids  = []
           Array(env[:machine].provider_config.ssh_key).each do |key|
             pattern = key.is_a?(String) ? "label" : "id"

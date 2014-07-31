@@ -19,7 +19,7 @@ module VagrantPlugins
           Timeout::timeout(env[:machine].provider_config.rebuild_timeout) do
             @logger.debug("Checking if the instance has been rebuilt.")
             sl_warden do
-              while env[:sl_machine].object_mask("activeTransactionCount").getObject["activeTransactionCount"] > 0
+              while env[:sl_machine].object_mask("mask[activeTransactionCount]").getObject["activeTransactionCount"] > 0
                 @logger.debug("The machine is still being rebuilt. Retrying in 10 seconds.")
                 sleep 10
               end
