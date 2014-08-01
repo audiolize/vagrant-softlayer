@@ -54,6 +54,12 @@ module VagrantPlugins
       # Whether or not the instance only has access to the private network.
       attr_accessor :private_only
 
+      # The amount of time in seconds to wait for provision to complete.
+      attr_accessor :provision_timeout
+
+      # The amount of time in seconds to wait for rebuild to complete.
+      attr_accessor :rebuild_timeout
+
       # The id or name of the ssh key to be provisioned.
       attr_accessor :ssh_key
 
@@ -80,25 +86,27 @@ module VagrantPlugins
         @endpoint_url = UNSET_VALUE
         @username     = UNSET_VALUE
 
-        @datacenter       = UNSET_VALUE
-        @dedicated        = UNSET_VALUE
-        @disk_capacity    = UNSET_VALUE
-        @domain           = UNSET_VALUE
-        @force_private_ip = UNSET_VALUE
-        @hostname         = UNSET_VALUE
-        @image_guid       = UNSET_VALUE
-        @hourly_billing   = UNSET_VALUE
-        @local_disk       = UNSET_VALUE
-        @max_memory       = UNSET_VALUE
-        @network_speed    = UNSET_VALUE
-        @operating_system = UNSET_VALUE
-        @post_install     = UNSET_VALUE
-        @private_only     = UNSET_VALUE
-        @ssh_key          = UNSET_VALUE
-        @start_cpus       = UNSET_VALUE
-        @user_data        = UNSET_VALUE
-        @vlan_private     = UNSET_VALUE
-        @vlan_public      = UNSET_VALUE
+        @datacenter        = UNSET_VALUE
+        @dedicated         = UNSET_VALUE
+        @disk_capacity     = UNSET_VALUE
+        @domain            = UNSET_VALUE
+        @force_private_ip  = UNSET_VALUE
+        @hostname          = UNSET_VALUE
+        @image_guid        = UNSET_VALUE
+        @hourly_billing    = UNSET_VALUE
+        @local_disk        = UNSET_VALUE
+        @max_memory        = UNSET_VALUE
+        @network_speed     = UNSET_VALUE
+        @operating_system  = UNSET_VALUE
+        @post_install      = UNSET_VALUE
+        @private_only      = UNSET_VALUE
+        @provision_timeout = UNSET_VALUE
+        @rebuild_timeout   = UNSET_VALUE
+        @ssh_key           = UNSET_VALUE
+        @start_cpus        = UNSET_VALUE
+        @user_data         = UNSET_VALUE
+        @vlan_private      = UNSET_VALUE
+        @vlan_public       = UNSET_VALUE
 
         @load_balancers = []
         @manage_dns     = UNSET_VALUE
@@ -188,6 +196,12 @@ module VagrantPlugins
 
         # Private-network only is false by default.
         @private_only = false if @private_only == UNSET_VALUE
+
+        # The amount of time in seconds to wait for provision to complete.
+        @provision_timeout = 1200 if @provision_timeout == UNSET_VALUE
+
+        # The amount of time in seconds to wait for rebuild to complete.
+        @rebuild_timeout = 1200 if @rebuild_timeout == UNSET_VALUE
 
         # SSH key should be specified in Vagrantfile, so we set default to nil.
         @ssh_key = nil if @ssh_key == UNSET_VALUE
