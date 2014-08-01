@@ -12,22 +12,22 @@ module VagrantPlugins
       # This action is called to terminate the remote machine.
       def self.action_destroy
         Vagrant::Action::Builder.new.tap do |b|
-          b.use ConfigValidate
-          b.use SetupSoftLayer
-          b.use Call, Is, :not_created do |env, b2|
+          b.use Call, DestroyConfirm do |env, b2|
             if env[:result]
-              b2.use Message, :error, "vagrant_softlayer.vm.not_created"
-              next
-            end
-            b2.use Call, DestroyConfirm do |env2, b3|
-              if env2[:result]
-                b3.use UpdateDNS
-                b3.use DestroyInstance
-                b3.use LoadBalancerCleanup
-                b3.use ProvisionerCleanup
-              else
-                b3.use Message, :warn, "vagrant_softlayer.vm.not_destroying"
+              b2.use ConfigValidate
+              b.use Call, Is, :not_created do |env2, b3|
+                if env2[:result]
+                  b3.use Message, :error, "vagrant_softlayer.vm.not_created"
+                  next
+                end
               end
+              b2.use SetupSoftLayer
+              b2.use UpdateDNS
+              b2.use DestroyInstance
+              b2.use LoadBalancerCleanup
+              b2.use ProvisionerCleanup
+            else
+              b2.use Message, :warn, "vagrant_softlayer.vm.not_destroying"
             end
           end
         end
@@ -37,19 +37,14 @@ module VagrantPlugins
       def self.action_halt
         Vagrant::Action::Builder.new.tap do |b|
           b.use ConfigValidate
-          b.use SetupSoftLayer
-          b.use Call, Is, :not_created do |env, b2|
-            if env[:result]
-              b2.use Message, :error, "vagrant_softlayer.vm.not_created"
+          b.use Call, Is, :running do |env, b2|
+            if !env[:result]
+              b2.use Message, :error, "vagrant_softlayer.vm.not_running"
               next
             end
-            b2.use Call, Is, :running do |env2, b3|
-              if !env2[:result]
-                b3.use Message, :error, "vagrant_softlayer.vm.not_running"
-              else
-                b3.use StopInstance
-              end
-            end
+
+            b2.use SetupSoftLayer
+            b2.use StopInstance
           end
         end
       end
@@ -58,20 +53,14 @@ module VagrantPlugins
       def self.action_provision
         Vagrant::Action::Builder.new.tap do |b|
           b.use ConfigValidate
-          b.use SetupSoftLayer
-          b.use Call, Is, :not_created do |env, b2|
-            if env[:result]
-              b2.use Message, :error, "vagrant_softlayer.vm.not_created"
+          b.use Call, Is, :running do |env, b2|
+            if !env[:result]
+              b2.use Message, :error, "vagrant_softlayer.vm.not_running"
               next
             end
-            b2.use Call, Is, :running do |env2, b3|
-              if !env2[:result]
-                b3.use Message, :error, "vagrant_softlayer.vm.not_running"
-              else
-                b3.use Provision
-                b3.use SyncFolders
-              end
-            end
+
+            b2.use Provision
+            b2.use SyncFolders
           end
         end
       end
@@ -101,23 +90,23 @@ module VagrantPlugins
       # This action is called to rebuild the machine OS from scratch.
       def self.action_rebuild
         Vagrant::Action::Builder.new.tap do |b|
-          b.use ConfigValidate
-          b.use SetupSoftLayer
-          b.use Call, Is, :not_created do |env, b2|
+          b.use Call, Confirm, I18n.t("vagrant_softlayer.vm.rebuild_confirmation"), :force_rebuild do |env, b2|
             if env[:result]
-              b2.use Message, :error, "vagrant_softlayer.vm.not_created"
-              next
-            end
-            b2.use Call, Confirm, I18n.t("vagrant_softlayer.vm.rebuild_confirmation"), :force_rebuild do |env2, b3|
-              if env2[:result]
-                b3.use RebuildInstance
-                b3.use Provision
-                b3.use SyncFolders
-                b3.use WaitForRebuild
-                b3.use WaitForCommunicator
-              else
-                b3.use Message, :warn, "vagrant_softlayer.vm.not_rebuilding"
+              b2.use ConfigValidate
+              b.use Call, Is, :not_created do |env2, b3|
+                if env2[:result]
+                  b3.use Message, :error, "vagrant_softlayer.vm.not_created"
+                  next
+                end
               end
+              b2.use SetupSoftLayer
+              b2.use RebuildInstance
+              b2.use Provision
+              b2.use SyncFolders
+              b2.use WaitForRebuild
+              b2.use WaitForCommunicator
+            else
+              b2.use Message, :warn, "vagrant_softlayer.vm.not_rebuilding"
             end
           end
         end
@@ -135,19 +124,14 @@ module VagrantPlugins
       def self.action_resume
         Vagrant::Action::Builder.new.tap do |b|
           b.use ConfigValidate
-          b.use SetupSoftLayer
-          b.use Call, Is, :not_created do |env, b2|
-            if env[:result]
-              b2.use Message, :error, "vagrant_softlayer.vm.not_created"
+          b.use Call, Is, :paused do |env, b2|
+            if !env[:result]
+              b2.use Message, :error, "vagrant_softlayer.vm.not_paused"
               next
             end
-            b2.use Call, Is, :paused do |env2, b3|
-              if !env2[:result]
-                b3.use Message, :error, "vagrant_softlayer.vm.not_paused"
-              else
-                b3.use ResumeInstance
-              end
-            end
+
+            b2.use SetupSoftLayer
+            b2.use ResumeInstance
           end
         end
       end
@@ -156,19 +140,13 @@ module VagrantPlugins
       def self.action_ssh
         Vagrant::Action::Builder.new.tap do |b|
           b.use ConfigValidate
-          b.use SetupSoftLayer
-          b.use Call, Is, :not_created do |env, b2|
-            if env[:result]
-              b2.use Message, :error, "vagrant_softlayer.vm.not_created"
+          b.use Call, Is, :running do |env, b2|
+            if !env[:result]
+              b2.use Message, :error, "vagrant_softlayer.vm.not_running"
               next
             end
-            b2.use Call, Is, :running do |env2, b3|
-              if !env2[:result]
-                b3.use Message, :error, "vagrant_softlayer.vm.not_running"
-              else
-                b3.use SSHExec
-              end
-            end
+
+            b2.use SSHExec
           end
         end
       end
@@ -176,23 +154,17 @@ module VagrantPlugins
       def self.action_ssh_run
         Vagrant::Action::Builder.new.tap do |b|
           b.use ConfigValidate
-          b.use SetupSoftLayer
-          b.use Call, Is, :not_created do |env, b2|
-            if env[:result]
-              b2.use Message, :error, "vagrant_softlayer.vm.not_created"
+          b.use Call, Is, :running do |env, b2|
+            if !env[:result]
+              b2.use Message, :error, "vagrant_softlayer.vm.not_running"
               next
             end
-            b2.use Call, Is, :running do |env2, b3|
-              if !env2[:result]
-                b3.use Message, :error, "vagrant_softlayer.vm.not_running"
-              else
-                b3.use SSHRun
-              end
-            end
+
+            b2.use SSHRun
           end
         end
       end
-      
+
       # This action is called to suspend the remote machine.
       def self.action_suspend
         Vagrant::Action::Builder.new.tap do |b|
@@ -221,6 +193,7 @@ module VagrantPlugins
           b.use SetupSoftLayer
           b.use Call, Is, :not_created do |env1, b1|
             if env1[:result]
+              b1.use SetupSoftLayer
               b1.use Provision
               b1.use SyncFolders
               b1.use CreateInstance
@@ -231,6 +204,7 @@ module VagrantPlugins
             else
               b1.use Call, Is, :halted do |env2, b2|
                 if env2[:result]
+                  b2.use SetupSoftLayer
                   b2.use Provision
                   b2.use SyncFolders
                   b2.use StartInstance
