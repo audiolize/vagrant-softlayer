@@ -24,6 +24,10 @@ module VagrantPlugins
       class SLSshKeyNotFound < VagrantSoftLayerError
         error_key(:ssh_key_not_found)
       end
+
+      class SLVlanIdNotFound < VagrantSoftLayerError
+        error_key(:vlan_id_not_found)
+      end
     end
   end
 end

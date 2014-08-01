@@ -79,26 +79,27 @@ See [Join load balancers](https://github.com/audiolize/vagrant-softlayer/wiki/Jo
 
 ### Instance Configuration
 
-Parameter          | Description                                                | Default                 | Required
------------------- | ---------------------------------------------------------- | ----------------------- | --------
-`datacenter`       | Datacenter shortname                                       | First available         | no
-`dedicated`        | Allocate a dedicated CCI (non-shared host)                 | false                   | no
-`disk_capacity`    | The capacity of each disk                                  |                         | no **
-`domain`           | The domain of the instance                                 |                         | yes
-`hostname`         | The hostname of the instance                               |                         | yes *
-`hourly_billing`   | Hourly billing type (false for monthly)                    | true                    | no
-`image_guid`       | The global identifier for the compute or flex image to use |                         | no **
-`local_disk`       | Use a local disk (false for SAN)                           | true                    | no
-`max_memory`       | The amount of RAM of the instance in Mb                    | 1024                    | no
-`network_speed`    | Network port speed in Mbps                                 | 10                      | no
-`operating_system` | The instance operating system identifier                   | UBUNTU_LATEST           | no **
-`post_install`     | URI of Post-install script to download                     |                         | no
-`private_only`     | Only create access to the private network                  | false                   | no
-`ssh_key`          | ID or label of the SSH key(s) to provision                 |                         | yes
-`start_cpus`       | The number of processors of the instance                   | 1                       | no
-`user_data`        | User defined metadata string                               |                         | no
-`vlan_private`     | The ID of the private VLAN                                 | Automatically generated | no
-`vlan_public`      | The ID of the public VLAN                                  | Automatically generated | no
+Parameter          | Description                                                                      | Default                 | Required
+------------------ | -------------------------------------------------------------------------------- | ----------------------- | --------
+`datacenter`       | Datacenter shortname                                                             | First available         | no
+`dedicated`        | Allocate a dedicated CCI (non-shared host)                                       | false                   | no
+`disk_capacity`    | The capacity of each disk                                                        |                         | no **
+`domain`           | The domain of the instance                                                       |                         | yes
+`force_private_ip` | Force the use of private IP for CCI communication even if public IP is available | false                   | no
+`hostname`         | The hostname of the instance                                                     |                         | yes *
+`hourly_billing`   | Hourly billing type (false for monthly)                                          | true                    | no
+`image_guid`       | The global identifier for the compute or flex image to use                       |                         | no **
+`local_disk`       | Use a local disk (false for SAN)                                                 | true                    | no
+`max_memory`       | The amount of RAM of the instance in Mb                                          | 1024                    | no
+`network_speed`    | Network port speed in Mbps                                                       | 10                      | no
+`operating_system` | The instance operating system identifier                                         | UBUNTU_LATEST           | no **
+`post_install`     | URI of Post-install script to download                                           |                         | no
+`private_only`     | Only create access to the private network                                        | false                   | no
+`ssh_key`          | ID or label of the SSH key(s) to provision                                       |                         | yes
+`start_cpus`       | The number of processors of the instance                                         | 1                       | no
+`user_data`        | User defined metadata string                                                     |                         | no
+`vlan_private`     | The ID, name or qualified name of the private VLAN                               | Automatically generated | no
+`vlan_public`      | The ID, name or qualified name of the public VLAN                                | Automatically generated | no
 
 \* The `hostname` could be specified either using `config.vm.hostname` or the provider parameter.
 
@@ -207,6 +208,10 @@ Also, a bunch of aliases for the `ssh_key` parameter are provided for better sem
 * `ssh_key_ids`
 * `ssh_key_name`
 * `ssh_key_names`
+
+## Quick Start Guide
+
+For those new to Vagrant, see the [Quick Start Guide](https://github.com/audiolize/vagrant-softlayer/blob/master/QUICKSTART.md).
 
 ## Development
 

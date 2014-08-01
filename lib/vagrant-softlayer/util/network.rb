@@ -31,9 +31,11 @@ module VagrantPlugins
         # :id
         #
         # Returns the private IP address record if the instance has been
-        # defined as private only, the public IP address record otherwise.
+        # defined as private only, the public IP address record otherwise
+        # unless the force_private_ip override is true.
         def ip_address_record(env)
           data_type = env[:machine].provider_config.private_only ? "primaryBackendNetworkComponent" : "primaryNetworkComponent"
+          data_type = "primaryBackendNetworkComponent" if env[:machine].provider_config.force_private_ip
           mask      = { data_type => { "primaryIpAddressRecord" => ["id", "ipAddress"] } }
           record    = sl_warden { env[:sl_machine].object_mask(mask).getObject }
           return {
