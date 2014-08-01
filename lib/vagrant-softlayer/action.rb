@@ -15,17 +15,17 @@ module VagrantPlugins
           b.use Call, DestroyConfirm do |env, b2|
             if env[:result]
               b2.use ConfigValidate
-              b.use Call, Is, :not_created do |env2, b3|
+              b2.use Call, Is, :not_created do |env2, b3|
                 if env2[:result]
                   b3.use Message, :error, "vagrant_softlayer.vm.not_created"
-                  next
+                else
+                  b3.use SetupSoftLayer
+                  b3.use UpdateDNS
+                  b3.use DestroyInstance
+                  b3.use LoadBalancerCleanup
+                  b3.use ProvisionerCleanup
                 end
               end
-              b2.use SetupSoftLayer
-              b2.use UpdateDNS
-              b2.use DestroyInstance
-              b2.use LoadBalancerCleanup
-              b2.use ProvisionerCleanup
             else
               b2.use Message, :warn, "vagrant_softlayer.vm.not_destroying"
             end
@@ -93,18 +93,18 @@ module VagrantPlugins
           b.use Call, Confirm, I18n.t("vagrant_softlayer.vm.rebuild_confirmation"), :force_rebuild do |env, b2|
             if env[:result]
               b2.use ConfigValidate
-              b.use Call, Is, :not_created do |env2, b3|
+              b2.use Call, Is, :not_created do |env2, b3|
                 if env2[:result]
                   b3.use Message, :error, "vagrant_softlayer.vm.not_created"
-                  next
+                else
+                  b3.use SetupSoftLayer
+                  b3.use RebuildInstance
+                  b3.use Provision
+                  b3.use SyncFolders
+                  b3.use WaitForRebuild
+                  b3.use WaitForCommunicator
                 end
               end
-              b2.use SetupSoftLayer
-              b2.use RebuildInstance
-              b2.use Provision
-              b2.use SyncFolders
-              b2.use WaitForRebuild
-              b2.use WaitForCommunicator
             else
               b2.use Message, :warn, "vagrant_softlayer.vm.not_rebuilding"
             end
