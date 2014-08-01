@@ -28,7 +28,7 @@ module VagrantPlugins
         end
 
         def get_vlan_id(vlan_name, vlan_space)
-          return vlan_name if vlan_name.class != String
+          return vlan_name unless vlan_name.kind_of?(String)
 
           routers = @env[:sl_account].object_mask("mask[routers,routers.datacenter,routers.networkVlans,routers.networkVlans.networkSpace,routers.networkVlans.type]").getObject["routers"]
 
