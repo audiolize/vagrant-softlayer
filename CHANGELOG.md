@@ -1,3 +1,16 @@
+## 0.3.2 (August 1, 2014)
+
+ENHANCEMENTS:
+
+  - Add ability to specify vlans by name or qualified name.
+  - Add vagrant-softlayer-vlans contrib tool.
+  - Add ability to force private IP address usage.
+  - Add quick start guide and Vagrant Cloud boxes.
+
+BUG FIXES:
+
+  - Fix crash on destroy/rebuild when the instance don't exist.
+
 ## 0.3.1 (June 3, 2014)
 
 BUG FIXES:
