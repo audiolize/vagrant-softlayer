@@ -40,7 +40,7 @@ module VagrantPlugins
             end
           end
 
-          raise SLVlanIdNotFound
+          raise Errors::SLVlanIdNotFound, :vlan_space => vlan_space.to_s, :vlan_name => vlan_name.inspect
         end
 
         def order_template

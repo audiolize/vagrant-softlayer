@@ -124,7 +124,8 @@ en:
         The SSH key you're trying to set (%{key}) does not exists in the
         SoftLayer account's keychain.
       vlan_id_not_found: |-
-        The vlan id for the vlan name provided could not be found.
+        The vlan id for the %{vlan_space} vlan name or qualified name
+        provided (%{vlan_name}) could not be found.
 
         Please check the configuration parameter for vlan name against
         acceptable values shown using the vagrant-softlayer-vlans tool.
