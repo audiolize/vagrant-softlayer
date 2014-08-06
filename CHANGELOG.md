@@ -1,3 +1,10 @@
+## 0.3.3 (unreleased)
+
+ENHANCEMENTS:
+
+  - Add parallel execution capability.
+  - Add configuration variables for provision and rebuild timeout.
+
 ## 0.3.2 (August 1, 2014)
 
 ENHANCEMENTS:
