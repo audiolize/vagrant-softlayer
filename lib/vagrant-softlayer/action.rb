@@ -60,7 +60,7 @@ module VagrantPlugins
             end
 
             b2.use Provision
-            b2.use SyncFolders
+            defined?(SyncedFolders) ? b2.use(SyncedFolders) : b2.use(SyncFolders)
           end
         end
       end
@@ -100,7 +100,7 @@ module VagrantPlugins
                   b3.use SetupSoftLayer
                   b3.use RebuildInstance
                   b3.use Provision
-                  b3.use SyncFolders
+                  defined?(SyncedFolders) ? b3.use(SyncedFolders) : b3.use(SyncFolders)
                   b3.use WaitForRebuild
                   b3.use WaitForCommunicator
                 end
@@ -195,7 +195,7 @@ module VagrantPlugins
             if env1[:result]
               b1.use SetupSoftLayer
               b1.use Provision
-              b1.use SyncFolders
+              defined?(SyncedFolders) ? b1.use(SyncedFolders) : b1.use(SyncFolders)
               b1.use CreateInstance
               b1.use WaitForProvision
               b1.use UpdateDNS
@@ -206,7 +206,7 @@ module VagrantPlugins
                 if env2[:result]
                   b2.use SetupSoftLayer
                   b2.use Provision
-                  b2.use SyncFolders
+                  defined?(SyncedFolders) ? b2.use(SyncedFolders) : b2.use(SyncFolders)
                   b2.use StartInstance
                   b2.use UpdateDNS
                   b2.use JoinLoadBalancer

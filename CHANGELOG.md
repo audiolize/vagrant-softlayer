@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
   - Add parallel execution capability.
   - Add configuration variables for provision and rebuild timeout.
+  - Use builtin synced folders if available.
 
 ## 0.3.2 (August 1, 2014)
 
