@@ -21,6 +21,14 @@ module VagrantPlugins
         error_key(:load_balancer_not_found)
       end
 
+      class SLProvisionTimeoutError < VagrantSoftLayerError
+        error_key(:provision_timeout_error)
+      end
+
+      class SLRebuildTimeoutError < VagrantSoftLayerError
+        error_key(:rebuild_timeout_error)
+      end
+
       class SLSshKeyNotFound < VagrantSoftLayerError
         error_key(:ssh_key_not_found)
       end

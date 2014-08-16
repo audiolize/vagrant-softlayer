@@ -20,7 +20,7 @@ module VagrantPlugins
           retry_msg = lambda { @logger.debug("Object not found, retrying in 10 seconds.") }
 
           # Defaults to 20 minutes timeout
-          Timeout::timeout(env[:machine].provider_config.provision_timeout) do
+          Timeout::timeout(env[:machine].provider_config.provision_timeout, Errors::SLProvisionTimeoutError) do
             @logger.debug("Checking if the newly ordered machine has been provisioned.")
             sl_warden(retry_msg, 10) do
               while env[:sl_machine].getPowerState["name"] != "Running" || env[:sl_machine].object_mask( { "provisionDate" => "" } ).getObject == {}
@@ -31,7 +31,7 @@ module VagrantPlugins
           end
 
           env[:ui].info I18n.t("vagrant_softlayer.vm.provisioned")
-          
+
           @app.call(env)
         end
       end

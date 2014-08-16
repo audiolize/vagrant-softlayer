@@ -6,6 +6,10 @@ ENHANCEMENTS:
   - Add configuration variables for provision and rebuild timeout.
   - Use builtin synced folders if available.
 
+BUG FIXES:
+
+  - Raise a proper exception on timeout.
+
 ## 0.3.2 (August 1, 2014)
 
 ENHANCEMENTS:

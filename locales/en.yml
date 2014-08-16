@@ -120,6 +120,30 @@ en:
         The load balancer you're trying to join has not been found.
 
         Please check the configuration parameter for virtual IP address.
+      provision_timeout_error: |-
+        Timed out while waiting for the instance to be available. This
+        means that Vagrant was unable to communicate with the instance
+        within the configured time period.
+
+        Please check the instance status using another SoftLayer
+        client tool (e.g. `sl` command line utility). If the box appears
+        to be properly up, you may want to increase the provision timeout:
+
+        config.vm.provider :softlayer do |sl|
+          sl.provision_timeout = 99999 # in seconds
+        end
+      rebuild_timeout_error: |-
+        Timed out while waiting for the instance to be available. This
+        means that Vagrant was unable to communicate with the instance
+        within the configured time period.
+
+        Please check the instance status using another SoftLayer
+        client tool (e.g. `sl` command line utility). If the box appears
+        to be properly up, you may want to increase the rebuild timeout:
+
+        config.vm.provider :softlayer do |sl|
+          sl.rebuild_timeout = 99999 # in seconds
+        end
       ssh_key_not_found: |-
         The SSH key you're trying to set (%{key}) does not exists in the
         SoftLayer account's keychain.
