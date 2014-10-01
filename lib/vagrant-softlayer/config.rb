@@ -66,6 +66,9 @@ module VagrantPlugins
       # The number of processors of the instance.
       attr_accessor :start_cpus
 
+      # Whether to wait for transaction completion on actions that place orders
+      attr_accessor :transaction_wait
+
       # User defined metadata string.
       attr_accessor :user_data
 
@@ -104,6 +107,7 @@ module VagrantPlugins
         @rebuild_timeout   = UNSET_VALUE
         @ssh_key           = UNSET_VALUE
         @start_cpus        = UNSET_VALUE
+        @transaction_wait  = UNSET_VALUE
         @user_data         = UNSET_VALUE
         @vlan_private      = UNSET_VALUE
         @vlan_public       = UNSET_VALUE
@@ -208,6 +212,9 @@ module VagrantPlugins
 
         # One processor by default.
         @start_cpus = 1 if @start_cpus == UNSET_VALUE
+
+        # Whether to wait for transaction completion on actions that place orders
+        @transaction_wait = true if @start_cpus == UNSET_VALUE
 
         # No user metadata by default.
         @user_data = nil if @user_data == UNSET_VALUE

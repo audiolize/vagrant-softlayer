@@ -33,6 +33,7 @@ describe VagrantPlugins::SoftLayer::Config do
     its("rebuild_timeout")   { should eq 1200 }
     its("ssh_key")           { should be_nil }
     its("start_cpus")        { should eq 1 }
+    its("transaction_wait")  { should be_true }
     its("user_data")         { should be_nil }
     its("vlan_private")      { should be_nil }
     its("vlan_public")       { should be_nil }
@@ -44,7 +45,7 @@ describe VagrantPlugins::SoftLayer::Config do
   describe "overriding defaults" do
     context "booleans" do
       [true, false].each do |bool|
-        [:dedicated, :force_private_ip, :hourly_billing, :local_disk, :manage_dns, :private_only].each do |attribute|
+        [:dedicated, :force_private_ip, :hourly_billing, :local_disk, :manage_dns, :private_only, :transaction_wait].each do |attribute|
           it "should accept both true and false for #{attribute}" do
             config.send("#{attribute}=".to_sym, bool)
             config.finalize!
@@ -150,6 +151,7 @@ describe VagrantPlugins::SoftLayer::Config do
       config.rebuild_timeout   = 1200
       config.ssh_key           = ["First key", "Second key"]
       config.start_cpus        = 1
+      config.transaction_wait  = true
       config.user_data         = "some metadata"
       config.vlan_private      = 111
       config.vlan_public       = 222

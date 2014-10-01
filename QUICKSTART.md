@@ -323,6 +323,7 @@ Vagrant.configure(2) do |config|
       #sl.private_only              = false
       sl.ssh_keys                  = [ "SL-root-pk" ]
       #sl.start_cpus                = 1
+      #sl.transaction_wait          = true
       #sl.user_data                 = nil
       sl.username                  = ENV["SL_API_USERNAME"] || ENV['USER'] || ENV['USERNAME']   
       #sl.vlan_private              = nil #Automatically generated, override to vlan number string otherwise, see contrib/vagrant-softlayer-vlans tool for list of acceptable vlan values

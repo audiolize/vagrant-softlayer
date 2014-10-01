@@ -1,3 +1,10 @@
+## 0.3.4 (unreleased)
+ENHANCEMENTS:
+  - Add transaction_wait provider option.
+
+BUG FIXES:
+  - Backport SoftLayer::VirtualServer#wait_until_ready to fix transaction wait problems.
+
 ## 0.3.3 (August 21, 2014)
 
 ENHANCEMENTS:

@@ -105,12 +105,13 @@ Parameter          | Description                                                
 
 \** When defining the instance you can either specify an `image_guid` or `operating_system` with optional `disk_capacity`.
 
-### Timeouts
+### Timeouts/Waits
 
-Parameter           | Description                               | Default         | Required
-------------------- | ------------------------------------------| ----------------| --------
-`provision_timeout` | Provisioning wait timeout in seconds      | 1200            | no
-`rebuild_timeout`   | Rebuild wait timeout in seconds           | 1200            | no
+Parameter             | Description                               | Default         | Required
+--------------------- | ------------------------------------------| ----------------| --------
+`provision_timeout`   | Provisioning wait timeout in seconds      | 1200            | no
+`rebuild_timeout`     | Rebuild wait timeout in seconds           | 1200            | no
+`transaction_timeout` | Wait for order transactions to complete   | true            | no
 
 These can be set like typical provider-specific configuration:
 
