@@ -107,11 +107,11 @@ Parameter          | Description                                                
 
 ### Timeouts/Waits
 
-Parameter             | Description                               | Default         | Required
---------------------- | ------------------------------------------| ----------------| --------
-`provision_timeout`   | Provisioning wait timeout in seconds      | 1200            | no
-`rebuild_timeout`     | Rebuild wait timeout in seconds           | 1200            | no
-`transaction_timeout` | Wait for order transactions to complete   | true            | no
+Parameter           | Description                               | Default         | Required
+------------------- | ------------------------------------------| ----------------| --------
+`provision_timeout` | Provisioning wait timeout in seconds      | 1200            | no
+`rebuild_timeout`   | Rebuild wait timeout in seconds           | 1200            | no
+`transaction_wait`  | Wait for order transactions to complete   | true            | no
 
 These can be set like typical provider-specific configuration:
 
