@@ -305,6 +305,7 @@ Vagrant.configure(2) do |config|
       #Note: If you use SL_GENERIC box you must set sl.image_guid or sl.operating_system/sl.dis_capacity, otherwise it is pre-set for you by the box
 
       sl.api_key                   = ENV["SL_API_KEY"]
+      #sl.api_timeout               = 60
       #sl.datacenter                = nil  #Use first available
       #sl.dedicated                 = false
       #sl.disk_capacity             = { 0 => 25 } # { disk_num => capacity_gb }, disk 1 reserved for swap by SoftLayer dont use
@@ -321,6 +322,8 @@ Vagrant.configure(2) do |config|
       #sl.operating_system          = "SL_CENTOS_6_64" #Set in box, here for override or if you used SL_GENERIC, see contrib/vagrant-softlayer-boxes of vagrant-softlayer plugin for box generator
       #sl.post_install              = nil #URL for post install script
       #sl.private_only              = false
+      #sl.provision_timeout         = 1200
+      #sl.rebuild_timeout           = 1200
       sl.ssh_keys                  = [ "SL-root-pk" ]
       #sl.start_cpus                = 1
       #sl.transaction_wait          = true
