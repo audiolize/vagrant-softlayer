@@ -1,3 +1,8 @@
+## 0.4.0 (unreleased)
+ENHANCEMENTS:
+  - Begins transition to SoftLayer API 2.x/3.x
+  - Add support for SoftLayer API timeout
+
 ## 0.3.4 (October 1, 2014)
 ENHANCEMENTS:
   - Add transaction_wait provider option.
