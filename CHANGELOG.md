@@ -1,4 +1,4 @@
-## 0.4.0 (unreleased)
+## 0.4.0 (October 1, 2014)
 ENHANCEMENTS:
   - Begins transition to SoftLayer API 2.x/3.x
   - Add support for SoftLayer API timeout
