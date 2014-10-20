@@ -80,7 +80,7 @@ describe VagrantPlugins::SoftLayer::Config do
       it "should not default disk_capacity if overriden" do
         config.send("disk_capacity=".to_sym, { 0 => 100, 2 => 25 } )
         config.finalize!
-        expect(config.send("disk_capacity")).to eq { 0 => 100, 2 => 25 }
+        expect(config.send("disk_capacity")).to eq({ 0 => 100, 2 => 25 })
       end
     end
   end
@@ -255,6 +255,7 @@ describe VagrantPlugins::SoftLayer::Config do
     end
 
     it "should fail if operating system and image_guid are both specified" do
+      config.disk_capacity = nil
       config.image_guid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
       config.operating_system = "UBUNTU_LATEST"
       config.finalize!

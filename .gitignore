@@ -2,7 +2,6 @@
 
 .bundle
 pkg/*
-Gemfile.lock
 
 .rspec
 
