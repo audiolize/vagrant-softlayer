@@ -1,3 +1,7 @@
+## 0.4.1 (UNRELEASED)
+BUG FIXES:
+  - Fix syntax errors in spec and pin rpsec versioning
+
 ## 0.4.0 (October 1, 2014)
 ENHANCEMENTS:
   - Begins transition to SoftLayer API 2.x/3.x
