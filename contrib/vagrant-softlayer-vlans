@@ -71,8 +71,6 @@ class SoftLayerVlans
     routers = @sl_services[:account].object_mask("mask[routers,routers.datacenter,routers.networkVlans,routers.networkVlans.networkSpace,routers.networkVlans.type]").getObject["routers"]
 
     routers.each do |router|
-      router["networkVlans"].delete_if {|vlan| ! vlan.has_key?("name") || vlan["type"]["keyName"] != "STANDARD"}
-
       router["networkVlans"].each do |vlan|
         vlan_details.push({
                             :datacenter     => router["datacenter"]["name"],
