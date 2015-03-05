@@ -1,6 +1,8 @@
-## 0.4.1 (UNRELEASED)
+## 0.4.1 (March 5, 2015)
 BUG FIXES:
   - Fix syntax errors in spec and pin rpsec versioning
+  - Fix incorrect filter on VLANs contrib tool causing it to not list all available VLANs
+  - Pin softlayer_api version to >= 3.0.1 to fix bug in wait_until_ready
 
 ## 0.4.0 (October 1, 2014)
 ENHANCEMENTS:
