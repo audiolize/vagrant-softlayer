@@ -67,7 +67,7 @@ Parameter      | Description                          | Default                 
 
 ### DNS Management
 
-If the DNS zone of the configured domain is hosted by SoftLayer, you can automatically manage it.
+If the [DNS zone](http://knowledgelayer.softlayer.com/learning/introduction-domain-name-system) of the configured domain is hosted by [SoftLayer](http://knowledgelayer.softlayer.com/topic/dns), you can automatically manage it.
 
 Parameter    | Description                           | Default | Required
 ------------ | ------------------------------------- | ------- | --------
