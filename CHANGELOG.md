@@ -1,3 +1,5 @@
+## 0.5.0 (UNRELEASED)
+
 ## 0.4.1 (March 5, 2015)
 BUG FIXES:
   - Fix syntax errors in spec and pin rpsec versioning
