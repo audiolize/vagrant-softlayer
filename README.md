@@ -252,6 +252,11 @@ Use bundler to execute Vagrant:
 $ bundle exec vagrant up --provider=softlayer
 ```
 
+## Contributing
+
+`vagrant-softlayer` is following [git-flow](https://github.com/nvie/gitflow) branch/workflow management. Please
+submit any pull requests to the `develop` branch.
+
 ## Credits
 
 Emiliano Ticci (@emyl)
